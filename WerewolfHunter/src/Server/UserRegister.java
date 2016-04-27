@@ -22,6 +22,8 @@ public class UserRegister implements Runnable {
     Map<String, User> userMap;
     ServerSocket sock;
     BlockingQueue<String> bque;
+    private sendMessage sendMsg;
+    private Thread thread;
 
     public UserRegister(ServerSocket sock, Map<String, User> userMap, BlockingQueue<String> bque) {
         this.userMap = userMap;
@@ -40,6 +42,9 @@ public class UserRegister implements Runnable {
                 bque.put(message);
                 if (!userMap.containsKey("1")){
                         userMap.put("1", new User("1", clientSock, in, bque));
+                        sendMsg = new sendMessage(userMap);
+                        thread = new Thread(sendMsg);
+                        thread.start();
                 }
             }
         } catch (IOException ex) {
