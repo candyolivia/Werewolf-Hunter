@@ -5,12 +5,16 @@
  */
 package Client;
 
+import Server.Player;
+
 /**
  *
  * @author User
  */
 public class Proposer {
-    private int userId;
+    private Player player;
     
-    
+    public void makeProposal() {
+        
+    }
 }

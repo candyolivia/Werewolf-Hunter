@@ -18,14 +18,15 @@ public class QuoteServerThread extends Thread {
     protected DatagramSocket socket = null;
     protected BufferedReader in = null;
     protected boolean moreQuotes = true;
+    private int portNumber = 4445;
  
     public QuoteServerThread() throws IOException {
-    this("QuoteServerThread");
+        this("QuoteServerThread");
     }
  
     public QuoteServerThread(String name) throws IOException {
         super(name);
-        socket = new DatagramSocket(4445);
+        socket = new DatagramSocket(portNumber);
  
         try {
             in = new BufferedReader(new FileReader("one-liners.txt"));

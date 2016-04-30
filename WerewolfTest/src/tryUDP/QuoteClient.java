@@ -23,18 +23,19 @@ public class QuoteClient {
 
             // get a datagram socket
         DatagramSocket socket = new DatagramSocket();
+        int portNumber = 4445;
 
-            // send request
+        // send request
         byte[] buf = new byte[256];
         InetAddress address = InetAddress.getByName(args[0]);
-        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 4445);
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, portNumber);
         socket.send(packet);
     
-            // get response
+        // get response
         packet = new DatagramPacket(buf, buf.length);
         socket.receive(packet);
 
-	    // display response
+	// display response
         String received = new String(packet.getData(), 0, packet.getLength());
         System.out.println("Quote of the Moment: " + received);
     
