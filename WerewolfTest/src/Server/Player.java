@@ -13,7 +13,11 @@ public class Player {
     private int id;
     private String username;
     private int role; //Werewolf (0) or Civillian(1)
-
+    private String address = "address";
+    private String port = "port";
+    private boolean alive = true;
+    private boolean ready = false;
+    
     public int getId() {
         return id;
     }
@@ -43,5 +47,19 @@ public class Player {
         id = _id;
         username = _username;
         role = _role;
+    }
+
+    /**
+     * @return the ready
+     */
+    public boolean isReady() {
+        return ready;
+    }
+
+    /**
+     * @param ready the ready to set
+     */
+    public void setReady(boolean ready) {
+        this.ready = ready;
     }
 }

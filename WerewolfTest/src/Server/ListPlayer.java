@@ -13,7 +13,7 @@ import java.util.Iterator;
  * @author Candy
  */
 public class ListPlayer {
-    private ArrayList<Player> players = new ArrayList<Player>();
+    private static ArrayList<Player> players = new ArrayList<Player>();
     
     public ArrayList getPlayers() {
         return players;
@@ -23,9 +23,11 @@ public class ListPlayer {
         this.players = players;
     }
     
-    public void addPlayer(int id, String username, int role){
+    public Player addPlayer(int id, String username, int role){
         Player newPlayer = new Player(id, username, role);
         players.add(newPlayer);
+        
+        return newPlayer;
     }
     
     public void removePlayer(String username){

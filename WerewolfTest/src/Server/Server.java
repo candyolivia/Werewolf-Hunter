@@ -36,7 +36,6 @@ public class Server {
         int numPlayers = 6;
         
         boolean listening = true;
-        boolean cek = true;
          
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (listening) {                              
@@ -45,16 +44,17 @@ public class Server {
                     playerId = listPlayer.getLastId() + 1;
                 }
                 newServer.setPlayerId(playerId);
-                newServer.setListPlayer(listPlayer);
+                //newServer.setListPlayer(listPlayer);
                 if (listPlayer.getSize() > numPlayers) {
                     newServer.setPlaying(true);
                 } else {
                     newServer.setPlaying(false);
                 }
                 newServer.start();
-                listPlayer = newServer.getListPlayer();
+                //listPlayer = newServer.getListPlayer();
                 listPlayer.print();
-                System.out.println("player: " + listPlayer.getSize() + " " + playerId);
+                //System.out.println("player: " + listPlayer.getSize() + " " + playerId);
+                // TODO : start game
              
             }
         } catch (IOException e) {

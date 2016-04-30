@@ -23,8 +23,10 @@ import org.json.JSONObject;
 public class ServerThread extends Thread {
     private Socket clientSocket = null;
     private int playerId;
-    private ListPlayer listPlayer;
+    private ListPlayer listPlayer = new ListPlayer();
+    private Player player = null;
     private boolean playing = false;
+    
     private String username;
 
     public ServerThread(Socket socket) {
@@ -55,7 +57,7 @@ public class ServerThread extends Thread {
                                                     "\"description\": \"wrong request\"}");
                             out.println(jsonOut);
                         } else if (!listPlayer.checkPlayerExisted(jsonIn.getString("username"))){
-                            listPlayer.addPlayer(playerId, jsonIn.getString("username"), 0);
+                            player = listPlayer.addPlayer(playerId, jsonIn.getString("username"), 0);
                             JSONObject jsonOut = new JSONObject("{\n" +
                                                     "\"status\": \"ok\",\n" +
                                                     "\"player_id\": " + playerId + "}");
@@ -94,7 +96,18 @@ public class ServerThread extends Thread {
                             out.println(jsonOut);
                             System.out.println(jsonOut);
                             System.exit(0);
-                        } else {
+                        }
+                        else if (jsonIn.getString("method").equals("ready")) {
+                            player.setReady(true);
+                            JSONObject jsonOut = new JSONObject("{\n" +
+                                            "\"status\": \"ok\",\n" +
+                                            "\"description\": \"waiting for other player to start\"}");
+                            out.println(jsonOut);
+                            System.out.println(jsonOut);
+                        }
+                        
+                        
+                        else {
                             JSONObject jsonOut = new JSONObject("{\n" +
                                             "\"status\": \"error\"\n," + 
                                             "\"description\": \"wrong request\"}");
