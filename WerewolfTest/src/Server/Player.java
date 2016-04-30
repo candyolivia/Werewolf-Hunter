@@ -18,54 +18,7 @@ public class Player {
     private int alive = 1;
     private boolean ready = false;
     
-    public int getId() {
-        return id;
-    }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public int getRole() {
-        return role;
-    }
-
-    public void setRole(int role) {
-        this.role = role;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public boolean isAlive() {
-        return alive;
-    }
-
-    public void setAlive(boolean alive) {
-        this.alive = alive;
-    }
-    
     //CONSTRUCTOR
     public Player(int _id, String _username, int _role) {
         id = _id;
@@ -74,17 +27,45 @@ public class Player {
     }
 
     /**
-     * @return the ready
+     * @return the id
      */
-    public boolean isReady() {
-        return ready;
+    public int getId() {
+        return id;
     }
 
     /**
-     * @param ready the ready to set
+     * @param id the id to set
      */
-    public void setReady(boolean ready) {
-        this.ready = ready;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /**
+     * @return the username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * @param username the username to set
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    /**
+     * @return the role
+     */
+    public int getRole() {
+        return role;
+    }
+
+    /**
+     * @param role the role to set
+     */
+    public void setRole(int role) {
+        this.role = role;
     }
 
     /**
@@ -118,7 +99,7 @@ public class Player {
     /**
      * @return the alive
      */
-    public int isAlive() {
+    public int getAlive() {
         return alive;
     }
 
@@ -128,4 +109,19 @@ public class Player {
     public void setAlive(int alive) {
         this.alive = alive;
     }
+
+    /**
+     * @return the ready
+     */
+    public boolean isReady() {
+        return ready;
+    }
+
+    /**
+     * @param ready the ready to set
+     */
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }
+
 }

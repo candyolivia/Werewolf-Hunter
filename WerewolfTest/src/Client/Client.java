@@ -14,6 +14,8 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.json.*;
 
@@ -24,14 +26,27 @@ import org.json.*;
 public class Client {
     public static void main(String[] args) throws IOException{
         
-        if (args.length != 2) {
+        /* if (args.length != 2) {
             System.err.println(
                 "Usage: java EchoClient <host name> <port number>");
             System.exit(1);
-        }
+        }*/
         
-        String hostName = args[0];
-        int portNumber = Integer.parseInt(args[1]);
+        String inputHostname = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Host Name:\n",
+                                "Enter Host Name",
+                                JOptionPane.QUESTION_MESSAGE);
+        
+        String inputPortNumber = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Port Number:\n",
+                                "Enter Port Number",
+                                JOptionPane.QUESTION_MESSAGE);
+        
+        
+        String hostName = inputHostname;
+        int portNumber = Integer.parseInt(inputPortNumber);
         boolean valid = false;
 
         try (
@@ -46,14 +61,19 @@ public class Client {
             String fromServer;
             String fromUser;
             
-            System.out.print("Masukkan username : ");
+            String inputUsername = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Username:\n",
+                                "Enter Username",
+                                JOptionPane.QUESTION_MESSAGE);
+            //System.out.print("Masukkan username : ");
             
-            fromUser = stdIn.readLine();
-            while (fromUser != null) {
+            //fromUser = stdIn.readLine();
+            while (inputUsername != null) {
                 try {
                     JSONObject obj = new JSONObject("{\n" +
                             "\"method\": \"join\",\n" +
-                            "\"username\": \""+fromUser+"\"\n}");
+                            "\"username\": \""+inputUsername+"\"\n}");
                     System.out.println("Client: " + obj);
                     out.println(obj);
                     
@@ -78,7 +98,16 @@ public class Client {
                 }
                 
             }
-
+            if (valid){
+                java.awt.EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    GameView game = new GameView();
+                    game.setVisible(true);
+                    game.setOut(out);
+                    game.setIn(in);
+            }
+        });
+            }
             while (valid) {
                 System.out.print("Masukkan method : ");
 
@@ -134,9 +163,13 @@ public class Client {
 //                }
 //            }
         } catch (UnknownHostException e) {
+            JOptionPane.showMessageDialog(new JFrame(), "Unknown Host Name: " +
+                hostName + ".", "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Don't know about host " + hostName);
             System.exit(1);
         } catch (IOException e) {
+            JOptionPane.showMessageDialog(new JFrame(), "Can't establish connection to " +
+                hostName + ".", "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Couldn't get I/O for the connection to " +
                 hostName);
             System.exit(1);
