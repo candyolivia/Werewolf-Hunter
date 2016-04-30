@@ -13,6 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -95,7 +96,7 @@ public class ServerThread extends Thread {
                                             "\"status\": \"ok\"}");
                             out.println(jsonOut);
                             System.out.println(jsonOut);
-                            System.exit(0);
+                            //System.exit(0);
                         }
                         else if (jsonIn.getString("method").equals("ready")) {
                             player.setReady(true);
@@ -105,7 +106,28 @@ public class ServerThread extends Thread {
                             out.println(jsonOut);
                             System.out.println(jsonOut);
                         }
-                        
+                        else if (jsonIn.getString("method").equals("client_address")) {
+                            JSONObject jsonOut = new JSONObject("{\n" +
+                                            "\"status\": \"ok\",\n" +
+                                            "\"description\": \"list of clients retrieved\"}");
+                            JSONArray clients = new JSONArray();
+                            for(int i=0; i < listPlayer.getSize(); i++){
+                                JSONObject player = new JSONObject();
+                                player.put("player_id", listPlayer.getPlayer(i).getId());
+                                player.put("is_alive", listPlayer.getPlayer(i).getAlive());
+                                player.put("address", listPlayer.getPlayer(i).getAddress());
+                                player.put("port", listPlayer.getPlayer(i).getPort());
+                                player.put("username", listPlayer.getPlayer(i).getUsername());
+                                if (listPlayer.getPlayer(i).getAlive() == 0)
+                                    player.put("role", listPlayer.getPlayer(i).getRole());
+
+                                clients.put(player);
+                            }
+                            
+                            jsonOut.put("clients",clients);
+                            out.println(jsonOut);
+                            System.out.println(jsonOut);
+                        }
                         
                         else {
                             JSONObject jsonOut = new JSONObject("{\n" +

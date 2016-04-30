@@ -18,7 +18,11 @@ public class ListPlayer {
     public ArrayList getPlayers() {
         return players;
     }
-
+    
+    public Player getPlayer(int i){
+        return players.get(i);
+    }
+    
     public void setPlayers(ArrayList players) {
         this.players = players;
     }
