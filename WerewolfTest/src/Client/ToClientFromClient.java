@@ -16,14 +16,14 @@ import java.util.logging.Logger;
  */
 public class ToClientFromClient {
 
-    private Sender sender;
+    private Proposer sender;
     private Thread senderth;
     private DatagramSocket socket;
     
     public ToClientFromClient(){
         try {
             socket = new DatagramSocket();
-            sender = new Sender(socket);
+            sender = new Proposer(socket);
             senderth = new Thread(sender);
             senderth.start();
         } catch (SocketException ex) {
