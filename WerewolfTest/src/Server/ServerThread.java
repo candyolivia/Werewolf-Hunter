@@ -59,7 +59,7 @@ public class ServerThread extends Thread {
                             JSONObject jsonOut = new JSONObject("{\n" +
                                                     "\"status\": \"ok\",\n" +
                                                     "\"player_id\": " + playerId + "}");
-                            playerId++;
+                            //playerId++;
                             out.println(jsonOut);
                             username = jsonIn.getString("username");
                             valid = true;

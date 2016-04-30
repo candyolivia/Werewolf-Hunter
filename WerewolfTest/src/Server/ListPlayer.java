@@ -50,6 +50,19 @@ public class ListPlayer {
         return check;
     }
     
+    
+    public boolean checkPlayerIdExisted(int id){
+        boolean check = false;
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getId() == id){
+                //System.out.println(players.get(i).getUsername()+ " " +username);
+                check = true;
+                break;
+            }
+        }
+        return check;
+    }
+    
     public void print(){
         for (int i = 0; i < players.size(); i++) {
             System.out.println(players.get(i).getId() + " " + players.get(i).getUsername() + " " + players.get(i).getRole());
@@ -58,5 +71,13 @@ public class ListPlayer {
     
     public int getSize(){
         return players.size();
+    }
+    
+    public int getLastId(){
+        return players.get(players.size()-1).getId();
+    }
+    
+    public boolean isEmpty(){
+        return players.isEmpty();
     }
 }

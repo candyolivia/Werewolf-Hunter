@@ -33,7 +33,7 @@ public class Server {
         
         int playerId = 0;
         ListPlayer listPlayer = new ListPlayer();
-        int numPlayers = 3;
+        int numPlayers = 6;
         
         boolean listening = true;
         boolean cek = true;
@@ -41,9 +41,12 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (listening) {                              
                 ServerThread newServer = new ServerThread(serverSocket.accept());
+                if (!listPlayer.isEmpty()){
+                    playerId = listPlayer.getLastId() + 1;
+                }
                 newServer.setPlayerId(playerId);
                 newServer.setListPlayer(listPlayer);
-                if (playerId > numPlayers) {
+                if (listPlayer.getSize() > numPlayers) {
                     newServer.setPlaying(true);
                 } else {
                     newServer.setPlaying(false);
@@ -51,14 +54,8 @@ public class Server {
                 newServer.start();
                 listPlayer = newServer.getListPlayer();
                 listPlayer.print();
-                //System.out.println(listPlayer.getSize()+1 + " " + playerId);
-                if (listPlayer.getSize() < playerId) {
-                    
-                } else {
-                    playerId++;
-                }
-                
-                
+                System.out.println("player: " + listPlayer.getSize() + " " + playerId);
+             
             }
         } catch (IOException e) {
             System.err.println("Could not listen on port " + portNumber);
