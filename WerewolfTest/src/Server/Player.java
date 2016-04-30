@@ -41,6 +41,30 @@ public class Player {
     public void setRole(int role) {
         this.role = role;
     }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
     
     //CONSTRUCTOR
     public Player(int _id, String _username, int _role) {

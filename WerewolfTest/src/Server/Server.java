@@ -25,7 +25,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
         
         if (args.length != 1) {
-            System.err.println("Usage: java KnockKnockServer <port number>");
+            System.err.println("Usage: java LocalHost <port number>");
             System.exit(1);
         }
 
