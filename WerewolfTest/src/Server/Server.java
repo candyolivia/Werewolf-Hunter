@@ -31,7 +31,7 @@ public class Server {
 
         int portNumber = Integer.parseInt(args[0]);
         
-        int playerId = 1;
+        int playerId = 0;
         ListPlayer listPlayer = new ListPlayer();
         int numPlayers = 3;
         
@@ -52,7 +52,7 @@ public class Server {
                 listPlayer = newServer.getListPlayer();
                 listPlayer.print();
                 //System.out.println(listPlayer.getSize()+1 + " " + playerId);
-                if (listPlayer.getSize()+1 < playerId) {
+                if (listPlayer.getSize() < playerId) {
                     
                 } else {
                     playerId++;

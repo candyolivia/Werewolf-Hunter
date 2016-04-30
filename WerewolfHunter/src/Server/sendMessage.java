@@ -28,7 +28,9 @@ public class sendMessage implements Runnable{
     
     @Override
     public void run() {
-        while(!mapUser.containsKey("1"));
+        System.out.println("wew");
+        //while(!mapUser.containsKey("1"));
+        System.out.println("wew1");
         User user = mapUser.get("1");
         this.out = user.getOutput();
         while(true){

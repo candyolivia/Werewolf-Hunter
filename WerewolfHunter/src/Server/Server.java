@@ -24,24 +24,19 @@ public class Server {
     private BlockingQueue<String> bque;
     private ServerSocket serverSock;
     private UserRegister userReg;
-    private sendMessage sendMsg;
     private Thread userRegThread;
-    private Thread sendMsgThread;
     
     public Server(int port) throws IOException{
         serverSock = new ServerSocket(port);
         bque = (BlockingQueue<String>) new LinkedBlockingQueue();
         mapUser = new HashMap<String, User>();
         userReg = new UserRegister(serverSock, mapUser, bque);
-        sendMsg = new sendMessage(mapUser);
         userRegThread = new Thread(userReg);
-        sendMsgThread = new Thread(sendMsg);
     }
     
     public void Start(){
         System.out.println("Start");
         userRegThread.start();
-        sendMsgThread.start();
         while(true){
             try {
                 String message = (String) bque.take();
