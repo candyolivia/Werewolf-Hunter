@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,7 +35,13 @@ public class GameView extends javax.swing.JFrame {
         playerList.setVisible(false);
         leaveButton.setVisible(false);
         voteButton.setVisible(false);
-        this.revalidate();
+        playersLabel.setVisible(false);
+        roundLabel.setVisible(false);
+        phaseLabel.setVisible(false);
+        roleLabel.setVisible(false);
+        usernameLabel.setVisible(false);
+        activePlayers.setVisible(false);
+        //this.revalidate();
         
     }
 
@@ -54,6 +61,12 @@ public class GameView extends javax.swing.JFrame {
         voteButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         playerList = new javax.swing.JTextArea();
+        playersLabel = new javax.swing.JLabel();
+        roundLabel = new javax.swing.JLabel();
+        roleLabel = new javax.swing.JLabel();
+        usernameLabel = new javax.swing.JLabel();
+        phaseLabel = new javax.swing.JLabel();
+        activePlayers = new javax.swing.JComboBox<>();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -71,6 +84,10 @@ public class GameView extends javax.swing.JFrame {
         setBackground(new java.awt.Color(153, 204, 255));
         setMaximumSize(new java.awt.Dimension(1366, 768));
 
+        readyPane.setPreferredSize(new java.awt.Dimension(600, 480));
+
+        readyButton.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
+        readyButton.setForeground(new java.awt.Color(255, 102, 102));
         readyButton.setText("Ready");
         readyButton.setPreferredSize(new java.awt.Dimension(70, 70));
         readyButton.addActionListener(new java.awt.event.ActionListener() {
@@ -79,6 +96,8 @@ public class GameView extends javax.swing.JFrame {
             }
         });
 
+        leaveButton.setFont(new java.awt.Font("Frank", 0, 18)); // NOI18N
+        leaveButton.setForeground(new java.awt.Color(102, 102, 102));
         leaveButton.setText("Leave");
         leaveButton.setPreferredSize(new java.awt.Dimension(70, 70));
         leaveButton.addActionListener(new java.awt.event.ActionListener() {
@@ -87,6 +106,8 @@ public class GameView extends javax.swing.JFrame {
             }
         });
 
+        voteButton.setFont(new java.awt.Font("Frank", 0, 20)); // NOI18N
+        voteButton.setForeground(new java.awt.Color(0, 153, 153));
         voteButton.setText("Vote!");
         voteButton.setPreferredSize(new java.awt.Dimension(70, 70));
 
@@ -94,44 +115,109 @@ public class GameView extends javax.swing.JFrame {
 
         playerList.setEditable(false);
         playerList.setColumns(20);
+        playerList.setFont(new java.awt.Font("Frank", 0, 18)); // NOI18N
+        playerList.setForeground(new java.awt.Color(102, 102, 102));
         playerList.setRows(5);
         playerList.setText("Waiting for other player to start...");
         playerList.setWrapStyleWord(true);
-        playerList.setPreferredSize(new java.awt.Dimension(150, 94));
         jScrollPane1.setViewportView(playerList);
+
+        playersLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
+        playersLabel.setForeground(new java.awt.Color(0, 153, 153));
+        playersLabel.setText("Players");
+
+        roundLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
+        roundLabel.setForeground(new java.awt.Color(0, 153, 153));
+        roundLabel.setText("Round 1");
+
+        roleLabel.setFont(new java.awt.Font("Frank", 0, 28)); // NOI18N
+        roleLabel.setForeground(new java.awt.Color(0, 153, 153));
+        roleLabel.setText("You are a role");
+
+        usernameLabel.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
+        usernameLabel.setForeground(new java.awt.Color(0, 153, 153));
+        usernameLabel.setText("Username");
+
+        phaseLabel.setFont(new java.awt.Font("Frank", 0, 52)); // NOI18N
+        phaseLabel.setForeground(new java.awt.Color(0, 102, 153));
+        phaseLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        phaseLabel.setText("Day Time");
+
+        activePlayers.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
+        activePlayers.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout readyPaneLayout = new javax.swing.GroupLayout(readyPane);
         readyPane.setLayout(readyPaneLayout);
         readyPaneLayout.setHorizontalGroup(
             readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(readyPaneLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 376, Short.MAX_VALUE)
-                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                        .addContainerGap()
+                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(readyPaneLayout.createSequentialGroup()
+                        .addGap(149, 149, 149)
+                        .addComponent(phaseLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(readyPaneLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(usernameLabel)
+                            .addComponent(roleLabel)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(activePlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(15, 15, 15)))
+                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(readyPaneLayout.createSequentialGroup()
+                        .addGap(107, 107, 107)
+                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
+                                .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
+                        .addComponent(playersLabel)
+                        .addGap(35, 35, 35))))
+            .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(readyPaneLayout.createSequentialGroup()
+                    .addGap(199, 199, 199)
+                    .addComponent(roundLabel)
+                    .addContainerGap(317, Short.MAX_VALUE)))
         );
         readyPaneLayout.setVerticalGroup(
             readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(readyPaneLayout.createSequentialGroup()
-                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addContainerGap()
+                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 367, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(phaseLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(78, 78, 78)
+                        .addComponent(activePlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(125, 125, 125)
+                        .addComponent(usernameLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(roleLabel))
                     .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(playersLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 285, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(readyPaneLayout.createSequentialGroup()
+                    .addGap(21, 21, 21)
+                    .addComponent(roundLabel)
+                    .addContainerGap(394, Short.MAX_VALUE)))
         );
+
+        readyButton.getAccessibleContext().setAccessibleParent(null);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -186,6 +272,7 @@ public class GameView extends javax.swing.JFrame {
         
                 readyButton.setVisible(false);
                 jScrollPane1.setVisible(true);
+                playersLabel.setVisible(true);
                 playerList.setVisible(true);
                 playerList.setLineWrap(true);
                 leaveButton.setVisible(true);
@@ -211,27 +298,45 @@ public class GameView extends javax.swing.JFrame {
                 }
     }//GEN-LAST:event_leaveButtonActionPerformed
 
-    public synchronized void updatePlayerList(ArrayList list){
+    public synchronized void updatePlayerList(ArrayList usernames, ArrayList active){
         String players ="";
-        for(int i=0; i<list.size(); i++){
-            players += (list.get(i) + "\n");
+        for(int i=0; i<usernames.size(); i++){
+            players += (usernames.get(i) + "\n");
         }
         playerList.setText(players);
+       
+        activePlayers.setModel(new DefaultComboBoxModel(active.toArray()));
+        activePlayers.setVisible(true);
         
+        //this.revalidate();
     }
     
-    public synchronized void startGame(){
+    public synchronized void startGame(String username, String role){
+        roleLabel.setText(role);
+        usernameLabel.setText(username);
+        
         leaveButton.setEnabled(true);
         voteButton.setEnabled(true);
+        roundLabel.setVisible(true);
+        phaseLabel.setVisible(true);
+        roleLabel.setVisible(true);
+        usernameLabel.setVisible(true);
+        //this.revalidate();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> activePlayers;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton leaveButton;
+    private javax.swing.JLabel phaseLabel;
     private javax.swing.JTextArea playerList;
+    private javax.swing.JLabel playersLabel;
     private javax.swing.JButton readyButton;
     private javax.swing.JPanel readyPane;
+    private javax.swing.JLabel roleLabel;
+    private javax.swing.JLabel roundLabel;
+    private javax.swing.JLabel usernameLabel;
     private javax.swing.JButton voteButton;
     // End of variables declaration//GEN-END:variables
 
