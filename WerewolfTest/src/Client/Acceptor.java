@@ -196,7 +196,7 @@ public class Acceptor implements Runnable {
             } else {
                 role = 1;
             }
-            listPlayers.addPlayer(playerId, username, role);
+            listPlayers.addPlayer(playerId, username);
         }
     }
     
