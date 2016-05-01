@@ -151,6 +151,11 @@ public class Client {
                                     if (response.getString("status").equals("ok")) {
                                         socketUDP = new DatagramSocket(clientPort, InetAddress.getByName(clientAddress));
                                         acceptor = new Acceptor(socketUDP, listPlayers, playerID);
+                                        if (playerID == listPlayers.getSize()-1) {
+                                            acceptor.setIsKPU(true);
+                                            
+                                        }
+                                        acceptor.setIsConsensusTime(false);
                                         acceptorThread = new Thread(acceptor);
                                         acceptorThread.start();
                                     }
