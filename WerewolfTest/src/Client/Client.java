@@ -150,6 +150,7 @@ public class Client {
                                     System.out.println("masuk sini");
                                     if (response.getString("status").equals("ok")) {
                                         socketUDP = new DatagramSocket(clientPort, InetAddress.getByName(clientAddress));
+                                        //socketUDP.setSoTimeout(5000);
                                         acceptor = new Acceptor(socketUDP, listPlayers, playerID);
                                         acceptorThread = new Thread(acceptor);
                                         acceptorThread.start();
@@ -197,7 +198,7 @@ public class Client {
 //        hostName = inputHostname;
 //        portNumber = Integer.parseInt(inputPortNumber);
        hostName = "localhost";
-       portNumber = 8005;
+       portNumber = 1234;
         valid = false;
     }
     

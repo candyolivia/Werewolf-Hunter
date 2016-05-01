@@ -53,10 +53,12 @@ public class Proposer implements Runnable{
     
     @Override
     public void run() {
+        int i = 0;
         while(true){
             if(isConsensusTime){
                 if(isProposer){
                     if(getIsSendProposalTime()){
+                        System.out.println("masih send proposal" + ++i);
                         try {
                             prepareProposal();
                         } catch (JSONException ex) {
@@ -78,6 +80,7 @@ public class Proposer implements Runnable{
     }
     
     public void prepareProposal() throws JSONException {
+        System.err.println("prepare proposal proposer");
         JSONObject prepareProposalJSON = new JSONObject();
         prepareProposalJSON.put("method","prepare_proposal");
         prepareProposalJSON.put("proposal_id", new JSONArray(new Object[]{proposalID, playerID}));
@@ -85,7 +88,8 @@ public class Proposer implements Runnable{
         proposalID++;
         
         for (int i = 0; i < listPlayers.getSize(); i++) {
-            if (listPlayers.getPlayer(i).getId() != playerID) {
+            int playerDestinationId = listPlayers.getPlayer(i).getId();
+            if (playerDestinationId != playerID && !listAcceptorReceiveProposal.contains(playerDestinationId)) {
                 sendRequest(prepareProposalJSON, i);
             }
         }
@@ -137,7 +141,7 @@ public class Proposer implements Runnable{
         this.receiveData = receiveData;
     }
 
-    public ListPlayer getListPlayers() {
+    public ListPlayer getListPlayerso() {
         return listPlayers;
     }
 
@@ -235,5 +239,5 @@ public class Proposer implements Runnable{
     
     public ArrayList<Integer> getListAcceptorReceiveProposal() {
         return this.listAcceptorReceiveProposal;
-    } 
+    }
 }

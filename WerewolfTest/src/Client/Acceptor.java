@@ -11,6 +11,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -64,10 +65,10 @@ public class Acceptor implements Runnable {
                 }
                 buf = new byte[1024];
                 receiveData = new DatagramPacket(buf, buf.length);
+                //System.out.println("nilai count receive accept : " + countReceiveAccept);
+                System.out.println("nilai count receive promise : " + countReceivePromise);
+                System.out.println("nilai count consensus : " + countConsesusPaxos);
                 try {
-                    if (isProposer) {
-                        
-                    }
                     socketUDP.receive(receiveData);
                     System.err.println("acceptor receive : " + new String(receiveData.getData()));
                     String otherProposer = new String(receiveData.getData(), 0, receiveData.getLength());
@@ -83,10 +84,14 @@ public class Acceptor implements Runnable {
                     if(isProposer){
                         if(otherJSON.has("status")){
                             if(!isLeaderSelected){
-                                
                                 countReceivePromise++;
-                                if(otherJSON.getString("status").equals("ok")) countConsesusPaxos++;
+                                if(otherJSON.getString("status").equals("ok")) {
+                                    proposer.getListAcceptorReceiveProposal().add(listPlayers.getPlayerId(receiveData.getAddress().toString(), receiveData.getPort()));
+                                    countConsesusPaxos++;
+                                }
+                                System.out.println("ini jumlah list : " + listPlayers.getSize());
                                 if(countReceivePromise == listPlayers.getSize()-1) {
+                                    System.out.println("masuk ke sama dengan");
                                     if(consensusPaxos(countConsesusPaxos)) isLeader = true;
                                     countConsesusPaxos = 0;
                                     if(isLeader){
@@ -112,6 +117,10 @@ public class Acceptor implements Runnable {
                             }
                         }
                     }
+                /*} catch (SocketTimeoutException e) {
+                    System.out.println("Timeout broooo");
+                    //proposer.setIsSendProposalTime(true);
+                    continue;*/
                 } catch (IOException ex) {
                     Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (JSONException ex) {
@@ -208,6 +217,7 @@ public class Acceptor implements Runnable {
                         System.out.println("acceptor send : " + new String(sendData.getData()));
                         socketUDP.send(sendData);
                     } else {
+                        System.out.println("masuk else");
                         countConsesusPaxos = 0;
                         countReceivePromise = 0;
                         isLeaderSelected = false;
@@ -216,17 +226,17 @@ public class Acceptor implements Runnable {
                     counterPromiseNotProposer = 0;
                 }
             }   
-            } catch (SocketException ex) {
-                Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        } catch (SocketException ex) {
+            Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public void accept(JSONObject otherJSON) throws UnknownHostException, IOException{
         JSONArray arr;
         try {
-            arr = otherJSON.getJSONArray("proposer_id");
+            arr = otherJSON.getJSONArray("proposal_id");
             int otherProposerProposalID = arr.getInt(0);
             int otherProposerID = arr.getInt(1);
             JSONObject OKToOtherProposer = new JSONObject();
@@ -245,7 +255,7 @@ public class Acceptor implements Runnable {
     }
     
     public boolean consensusPaxos(int count) {
-        if (count > (listPlayers.getSize()/2 + 1)) {
+        if (count >= (listPlayers.getSize()/2 + 1)) {
             return true;
         }
         return false;

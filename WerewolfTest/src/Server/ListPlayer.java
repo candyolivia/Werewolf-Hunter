@@ -25,6 +25,15 @@ public class ListPlayer {
         return players;
     }
     
+    public int getPlayerId(String address, int port){
+        for(int i = 0; i < players.size()-1; ++i){
+            if(players.get(i).getAddress().equals(address) && players.get(i).getPort() == port){
+                return players.get(i).getId();
+            }
+        }
+        return -999;
+    }
+    
     public Player getPlayer(int i){
         return players.get(i);
     }
