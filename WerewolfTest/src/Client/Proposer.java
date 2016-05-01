@@ -13,6 +13,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Arrays.sort;
 import java.util.logging.Level;
@@ -40,11 +41,13 @@ public class Proposer implements Runnable{
     private boolean isProposer = false;
     private boolean isSendRequestTime = false;
     private boolean isSendProposalTime  = false;
+    private ArrayList<Integer> listAcceptorReceiveProposal;
      
     public Proposer(ListPlayer _listPlayer, int _playerID) throws SocketException{
         socket = new DatagramSocket();
         this.listPlayers = _listPlayer;
         this.playerID = _playerID;
+        listAcceptorReceiveProposal = new ArrayList<Integer>();
         buf = new byte[1024];
     }
     
@@ -75,7 +78,6 @@ public class Proposer implements Runnable{
     }
     
     public void prepareProposal() throws JSONException {
-        isSendRequestTime = true;
         JSONObject prepareProposalJSON = new JSONObject();
         prepareProposalJSON.put("method","prepare_proposal");
         prepareProposalJSON.put("proposal_id", new JSONArray(new Object[]{proposalID, playerID}));
@@ -87,15 +89,15 @@ public class Proposer implements Runnable{
                 sendRequest(prepareProposalJSON, i);
             }
         }
-        isSendRequestTime = false;
     }
     
     public void sendRequest(JSONObject request, int playerId) {
         try {
             byte[] buf = request.toString().getBytes();
-            InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(playerId).getAddress().getBytes());
+            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(playerId).getAddress());
             int port = listPlayers.getPlayer(playerId).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
+             System.out.println("proposer send : " + new String(sendData.getData()));
             socket.send(sendData);
         } catch (IOException ex) {
             Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
@@ -204,9 +206,10 @@ public class Proposer implements Runnable{
     public void sendAcceptedProposal(DatagramSocket socketAccept, JSONObject request, int playerId) {
         try {
             byte[] buf = request.toString().getBytes();
-            InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(playerId).getAddress().getBytes());
+            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(playerId).getAddress());
             int port = listPlayers.getPlayer(playerId).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
+            System.out.println("proposer send : " + new String(sendData.getData()));
             socketAccept.send(sendData);
         } catch (IOException ex) {
             Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
@@ -229,4 +232,8 @@ public class Proposer implements Runnable{
             Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public ArrayList<Integer> getListAcceptorReceiveProposal() {
+        return this.listAcceptorReceiveProposal;
+    } 
 }
