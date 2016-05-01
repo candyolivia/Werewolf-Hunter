@@ -27,7 +27,7 @@ import static java.util.Arrays.sort;
  *
  * @author asus
  */
-public class Proposer{
+public class Proposer implements Runnable{
     
     DatagramSocket socket;
     byte[] buf;
@@ -39,12 +39,39 @@ public class Proposer{
     private boolean isConsensusTime = true;
     private boolean isProposer = false;
     private boolean isSendRequestTime = false;
+    private boolean isSendProposalTime  = false;
      
     public Proposer(ListPlayer _listPlayer, int _playerID) throws SocketException{
         socket = new DatagramSocket();
         this.listPlayers = _listPlayer;
         this.playerID = _playerID;
         buf = new byte[1024];
+    }
+    
+    @Override
+    public void run() {
+        while(true){
+            if(isConsensusTime){
+                if(isProposer){
+                    if(getIsSendProposalTime()){
+                        try {
+                            prepareProposal();
+                        } catch (JSONException ex) {
+                            Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        setIsSendProposalTime(false);
+                    }
+                    if(getIsSendRequestTime()){
+                        try {
+                            broadcastAcceptedProposal();
+                        } catch (JSONException ex) {
+                            Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        setIsSendRequestTime(false);
+                    }
+                }
+            }
+        }
     }
     
     public void prepareProposal() throws JSONException {
@@ -159,6 +186,47 @@ public class Proposer{
     public void setIsSendRequestTime(boolean isSendRequestTime) {
         this.isSendRequestTime = isSendRequestTime;
     }
+
+    /**
+     * @return the isSendProposalTime
+     */
+    public boolean getIsSendProposalTime() {
+        return isSendProposalTime;
+    }
+
+    /**
+     * @param isSendProposalTime the isSendProposalTime to set
+     */
+    public void setIsSendProposalTime(boolean isSendProposalTime) {
+        this.isSendProposalTime = isSendProposalTime;
+    }
     
-    
+    public void sendAcceptedProposal(DatagramSocket socketAccept, JSONObject request, int playerId) {
+        try {
+            byte[] buf = request.toString().getBytes();
+            InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(playerId).getAddress().getBytes());
+            int port = Integer.parseInt(listPlayers.getPlayer(playerId).getPort());
+            sendData = new DatagramPacket(buf, buf.length, address,port);
+            socketAccept.send(sendData);
+        } catch (IOException ex) {
+            Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void broadcastAcceptedProposal() throws JSONException {
+        DatagramSocket socketAccept;
+        try {
+            socketAccept = new DatagramSocket();
+            JSONObject acceptedProposalJSON = new JSONObject();
+            acceptedProposalJSON.put("method","accept_proposal");
+            acceptedProposalJSON.put("proposal_id", new JSONArray(new Object[]{getProposalID(), playerID}));
+            acceptedProposalJSON.put("kpu_id", playerID);
+
+            for (int i = 0; i < listPlayers.getSize(); i++) {
+                sendAcceptedProposal(socketAccept, acceptedProposalJSON, i);
+            }
+        } catch (SocketException ex) {
+            Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
