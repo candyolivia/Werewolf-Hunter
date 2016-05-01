@@ -30,7 +30,7 @@ public class Acceptor implements Runnable {
     DatagramPacket receiveData;
     private ListPlayer listPlayers;
     private boolean isProposer = false;
-    private boolean checkIsProposerTime = false;
+    private boolean checkIsProposerTime = true;
     private boolean isKPU = false;
     private boolean isLeader = false;
     private boolean isLeaderSelected = false;
@@ -45,8 +45,10 @@ public class Acceptor implements Runnable {
     private int countReceivePromise = 0;
     private int countReceiveAccept = 0;
     
-    public Acceptor(DatagramSocket _socketUDP) throws SocketException{
+    public Acceptor(DatagramSocket _socketUDP, ListPlayer _listPlayers, int _playerID) throws SocketException{
         this.socketUDP = _socketUDP;
+        this.listPlayers = _listPlayers;
+        this.playerID = _playerID;
         proposer = new Proposer(listPlayers, playerID);
         proposerth = new Thread(proposer);
     }
@@ -63,20 +65,27 @@ public class Acceptor implements Runnable {
                 buf = new byte[1024];
                 receiveData = new DatagramPacket(buf, buf.length);
                 try {
+                    if (isProposer) {
+                        
+                    }
                     socketUDP.receive(receiveData);
+                    System.err.println("acceptor receive : " + new String(receiveData.getData()));
                     String otherProposer = new String(receiveData.getData(), 0, receiveData.getLength());
                     JSONObject otherJSON = new JSONObject(otherProposer);
-                    if(otherJSON.getString("method") == "prepare_proposal"){
-                        promise(otherJSON);
-                    }
-                    if(otherJSON.getString("method") == "accept_proposal"){
-                        accept(otherJSON);
+                    if(otherJSON.has("method")){
+                        if(otherJSON.getString("method").equals("prepare_proposal")){
+                            promise(otherJSON);
+                        }
+                        if(otherJSON.getString("method").equals("accept_proposal")){
+                            accept(otherJSON);
+                        }
                     }
                     if(isProposer){
-                        if(otherJSON.getString("status") != null){
+                        if(otherJSON.has("status")){
                             if(!isLeaderSelected){
+                                
                                 countReceivePromise++;
-                                if(otherJSON.getString("status") == "ok") countConsesusPaxos++;
+                                if(otherJSON.getString("status").equals("ok")) countConsesusPaxos++;
                                 if(countReceivePromise == listPlayers.getSize()-1) {
                                     if(consensusPaxos(countConsesusPaxos)) isLeader = true;
                                     countConsesusPaxos = 0;
@@ -88,10 +97,10 @@ public class Acceptor implements Runnable {
                             }
                             if(isLeader){
                                 countReceiveAccept++;
-                                if(otherJSON.getString("status") == "ok") countConsesusPaxos++;
+                                if(otherJSON.getString("status").equals("ok")) countConsesusPaxos++;
                                 if(countReceiveAccept == listPlayers.getSize()-1){
                                     if(consensusPaxos(countConsesusPaxos)){
-                                        proposerth.stop();
+                                        //proposerth.stop();
                                         setIsConsensusTime(false);
                                         proposer.setIsConsensusTime(false);
                                         isKPU = true;
@@ -110,7 +119,7 @@ public class Acceptor implements Runnable {
                 }
                 
             } else if(isKPU){
-            
+                System.out.println("okokokok");
             }
         }
     }
@@ -138,7 +147,7 @@ public class Acceptor implements Runnable {
     public void promise(JSONObject otherJSON) throws JSONException {
         try {                
             if (isProposer) {
-                JSONArray arr = otherJSON.getJSONArray("proposer_id");
+                JSONArray arr = otherJSON.getJSONArray("proposal_id");
                 int otherProposerProposalID = arr.getInt(0);
                 int otherProposerID = arr.getInt(1);
                 JSONObject OKToOtherProposer = new JSONObject();
@@ -147,13 +156,13 @@ public class Acceptor implements Runnable {
                 if(previousKPUId != -999) OKToOtherProposer.put("previous_accepted", previousKPUId); 
 
                 buf = OKToOtherProposer.toString().getBytes();
-                InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(otherProposerID).getAddress().getBytes());
+                InetAddress address = InetAddress.getByName(listPlayers.getPlayer(otherProposerID).getAddress());
                 int port = listPlayers.getPlayer(otherProposerID).getPort();
                 sendData = new DatagramPacket(buf, buf.length, address,port);
                 socketUDP.send(sendData);
             } else { //Harus nunggu 2 proposal
                 ++counterPromiseNotProposer;
-                JSONArray arr = otherJSON.getJSONArray("proposer_id");
+                JSONArray arr = otherJSON.getJSONArray("proposal_id");
                 if(counterPromiseNotProposer < 2){
                     firstProposerProposalID = arr.getInt(0);
                     firstProposerID = arr.getInt(1);
@@ -173,28 +182,30 @@ public class Acceptor implements Runnable {
                     if ((firstProposerProposalID < secondProposerProposalID)||((firstProposerProposalID == secondProposerProposalID)
                             && (firstProposerID < secondProposerID))) {
                         buf = okResponse.toString().getBytes();
-                        InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(secondProposerID).getAddress().getBytes());
+                        InetAddress address = InetAddress.getByName(listPlayers.getPlayer(secondProposerID).getAddress());
                         int port = listPlayers.getPlayer(secondProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
 
                         buf = failResponse.toString().getBytes();
-                        address = InetAddress.getByAddress(listPlayers.getPlayer(firstProposerID).getAddress().getBytes());
+                        address = InetAddress.getByName(listPlayers.getPlayer(firstProposerID).getAddress());
                         port = listPlayers.getPlayer(firstProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
+                        System.out.println("acceptor send : " + new String(sendData.getData()));
                         socketUDP.send(sendData);
                     } else if ((firstProposerProposalID > secondProposerProposalID)||((firstProposerProposalID == secondProposerProposalID)
                             && (firstProposerID > secondProposerID))){
                         buf = okResponse.toString().getBytes();
-                        InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(firstProposerID).getAddress().getBytes());
+                        InetAddress address = InetAddress.getByName(listPlayers.getPlayer(firstProposerID).getAddress());
                         int port = listPlayers.getPlayer(firstProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
 
                         buf = failResponse.toString().getBytes();
-                        address = InetAddress.getByAddress(listPlayers.getPlayer(secondProposerID).getAddress().getBytes());
+                        address = InetAddress.getByName(listPlayers.getPlayer(secondProposerID).getAddress());
                         port = listPlayers.getPlayer(secondProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
+                        System.out.println("acceptor send : " + new String(sendData.getData()));
                         socketUDP.send(sendData);
                     } else {
                         countConsesusPaxos = 0;
@@ -223,9 +234,10 @@ public class Acceptor implements Runnable {
             OKToOtherProposer.put("description", "accepted");
             buf = OKToOtherProposer.toString().getBytes();
             
-            InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(otherProposerID).getAddress().getBytes());
+            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(otherProposerID).getAddress());
             int port = listPlayers.getPlayer(otherProposerID).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
+            System.out.println("acceptor send : " + new String(sendData.getData()));
             socketUDP.send(sendData);
         } catch (JSONException ex) {
             Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);

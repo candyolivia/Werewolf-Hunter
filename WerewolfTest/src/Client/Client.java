@@ -41,6 +41,7 @@ public class Client {
     private int playerID;
     private String clientAddress;
     private int clientPort;
+    private boolean isStart = false;
     
     
     public Client(){
@@ -64,13 +65,14 @@ public class Client {
                                 JOptionPane.QUESTION_MESSAGE);
             
             
-            do {
-                clientAddress = (String)JOptionPane.showInputDialog(
-                                new JFrame(),
-                                "Enter clientAddress:\n",
-                                "Enter clientAddress",
-                                JOptionPane.QUESTION_MESSAGE);
-            } while (clientAddress == null);
+//            do {
+//                clientAddress = (String)JOptionPane.showInputDialog(
+//                                new JFrame(),
+//                                "Enter clientAddress:\n",
+//                                "Enter clientAddress",
+//                                JOptionPane.QUESTION_MESSAGE);
+//            } while (clientAddress == null);
+                clientAddress = "127.0.0.1";
             
             do {
                 clientPort = Integer.parseInt((String)JOptionPane.showInputDialog(
@@ -129,10 +131,11 @@ public class Client {
                 fromServer = in.readLine();
 
                 JSONObject serverJSON = new JSONObject(fromServer);
+                JSONObject response = null;
 
                 if (fromServer != null) {
                     System.out.println("Server: " + serverJSON);
-                    if (serverJSON.has("method")){
+                    if (serverJSON.has("method")&&!isStart){
                         switch(serverJSON.getString("method")){
                             case "": break;
                             case "start":
@@ -141,20 +144,25 @@ public class Client {
                                 msg.put("method", "client_address");
                                 System.out.println("Client: " + msg);
                                 out.println(msg);
-                                JSONObject response = getResponse(in);
+                                response = getResponse(in);
                                 game.updatePlayerList(getUsernames(response));
+                                if (response.has("status")){
+                                    System.out.println("masuk sini");
+                                    if (response.getString("status").equals("ok")) {
+                                        socketUDP = new DatagramSocket(clientPort, InetAddress.getByName(clientAddress));
+                                        acceptor = new Acceptor(socketUDP, listPlayers, playerID);
+                                        acceptorThread = new Thread(acceptor);
+                                        acceptorThread.start();
+                                    }
+                                }
+                                System.out.println("masuk sini3");
                                 break;
                         }
-                    } else if (serverJSON.has("status")&&serverJSON.has("list of clients retrieved")){
-                        socketUDP = new DatagramSocket(clientPort, InetAddress.getByAddress(clientAddress.getBytes()));
-                        acceptor = new Acceptor(socketUDP);
-                        acceptor.setListPlayers(listPlayers);
-                        acceptor.setPlayerID(playerID);
-                        acceptorThread = new Thread(acceptor);
-                        acceptorThread.start();
-                        
-                    }
+                    } 
+                    
                 }
+                
+                
             }
         } catch (UnknownHostException e) {
             JOptionPane.showMessageDialog(new JFrame(), "Unknown Host Name: " +
@@ -174,20 +182,22 @@ public class Client {
     }
     
     public void initializeClient(){
-        String inputHostname = (String)JOptionPane.showInputDialog(
-                                new JFrame(),
-                                "Enter Host Name:\n",
-                                "Enter Host Name",
-                                JOptionPane.QUESTION_MESSAGE);
+//        String inputHostname = (String)JOptionPane.showInputDialog(
+//                                new JFrame(),
+//                                "Enter Host Name:\n",
+//                                "Enter Host Name",
+//                                JOptionPane.QUESTION_MESSAGE);
+//        
+//        String inputPortNumber = (String)JOptionPane.showInputDialog(
+//                                new JFrame(),
+//                                "Enter Port Number:\n",
+//                                "Enter Port Number",
+//                                JOptionPane.QUESTION_MESSAGE);
         
-        String inputPortNumber = (String)JOptionPane.showInputDialog(
-                                new JFrame(),
-                                "Enter Port Number:\n",
-                                "Enter Port Number",
-                                JOptionPane.QUESTION_MESSAGE);
-        
-        hostName = inputHostname;
-        portNumber = Integer.parseInt(inputPortNumber);
+//        hostName = inputHostname;
+//        portNumber = Integer.parseInt(inputPortNumber);
+       hostName = "localhost";
+       portNumber = 8005;
         valid = false;
     }
     
