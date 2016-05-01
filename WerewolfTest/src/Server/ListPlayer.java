@@ -20,6 +20,8 @@ import org.json.JSONObject;
  */
 public class ListPlayer {
     private static ArrayList<Player> players = new ArrayList<Player>();
+
+    private ArrayList werewolfId = randomRole();
     
     public ArrayList getPlayers() {
         return players;
@@ -43,7 +45,14 @@ public class ListPlayer {
     }
     
     public Player addPlayer(int id, String username, String address, int port){
-        Player newPlayer = new Player(id, username, "civilian", address, port);
+        String role;
+        if (werewolfId.contains(id)){
+            role = "werewolf";
+        }
+        else
+            role = "civilian";
+        
+        Player newPlayer = new Player(id, username, role, address, port);
         players.add(newPlayer);
         
         return newPlayer;
@@ -102,14 +111,17 @@ public class ListPlayer {
         return players.isEmpty();
     }
     
-    public void randomRole(){
-        int random1 = randomNum(0,getLastId());
-        players.get(random1).setRole("werewolf");
-        int random2 = randomNum(0,getLastId());
+    public ArrayList<Integer> randomRole(){
+        ArrayList<Integer> werewolfs = new ArrayList<Integer>();
+        int random1 = randomNum(0,5);
+        werewolfs.add(random1);
+        int random2 = randomNum(0,5);
         while (random1 == random2){
-            random2 = randomNum(0,getLastId());
+            random2 = randomNum(0,5);
         }
-        players.get(random2).setRole("werewolf");
+        werewolfs.add(random2);
+        
+        return werewolfs;
     }
     
     private int randomNum(int min, int max){
