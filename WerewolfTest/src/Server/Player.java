@@ -13,17 +13,19 @@ public class Player {
     private int id;
     private String username;
     private String role; //Werewolf (0) or Civillian(1)
-    private String address = "address";
-    private String port = "port";
+    private String address;
+    private int port;
     private int alive = 1;
     private boolean ready = false;
     
 
     //CONSTRUCTOR
-    public Player(int _id, String _username, String _role) {
+    public Player(int _id, String _username, String _role, String _address, int _port) {
         id = _id;
         username = _username;
         role = _role;
+        address = _address;
+        port = _port;
     }
 
     /**
@@ -85,14 +87,14 @@ public class Player {
     /**
      * @return the port
      */
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 
     /**
      * @param port the port to set
      */
-    public void setPort(String port) {
+    public void setPort(int port) {
         this.port = port;
     }
 

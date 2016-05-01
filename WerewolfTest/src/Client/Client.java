@@ -5,10 +5,14 @@
  */
 package Client;
 
+import Server.ListPlayer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -25,31 +29,22 @@ import org.json.*;
  * @author Candy
  */
 public class Client {
+    DatagramSocket socketUDP;
     private boolean isWerewolf;
     private Acceptor acceptor;
+    private Thread acceptorThread;
+    private boolean isDay;
+    private String hostName;
+    private int portNumber;
+    private boolean valid;
+    private ListPlayer listPlayers;
+    private int playerID;
+    private String clientAddress;
+    private int clientPort;
+    
     
     public Client(){
-        
-    }
-    
-    public static void main(String[] args) throws IOException{
-        String inputHostname = (String)JOptionPane.showInputDialog(
-                                new JFrame(),
-                                "Enter Host Name:\n",
-                                "Enter Host Name",
-                                JOptionPane.QUESTION_MESSAGE);
-        
-        String inputPortNumber = (String)JOptionPane.showInputDialog(
-                                new JFrame(),
-                                "Enter Port Number:\n",
-                                "Enter Port Number",
-                                JOptionPane.QUESTION_MESSAGE);
-        
-        
-        String hostName = inputHostname;
-        int portNumber = Integer.parseInt(inputPortNumber);
-        boolean valid = false;
-
+        initializeClient();
         try (
             Socket kkSocket = new Socket(hostName, portNumber);
             PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
@@ -68,11 +63,30 @@ public class Client {
                                 "Enter Username",
                                 JOptionPane.QUESTION_MESSAGE);
             
+            
+            do {
+                clientAddress = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter clientAddress:\n",
+                                "Enter clientAddress",
+                                JOptionPane.QUESTION_MESSAGE);
+            } while (clientAddress == null);
+            
+            do {
+                clientPort = Integer.parseInt((String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter clientPort:\n",
+                                "Enter clientPort",
+                                JOptionPane.QUESTION_MESSAGE));
+            } while (clientPort == 0);
+            
             while (inputUsername != null) {
                 try {
                     JSONObject obj = new JSONObject();
                     obj.put("method", "join");
                     obj.put("username",inputUsername);
+                    obj.put("udp_address",clientAddress);
+                    obj.put("udp_port", clientPort);
                     System.out.println("Client: " + obj);
                     out.println(obj);
                     
@@ -83,6 +97,7 @@ public class Client {
                     if (fromServer != null) {
                         System.out.println("Server: " + serverJSON);
                         if (serverJSON.get("status").equals("ok")){
+                            playerID = serverJSON.getInt("player_id");
                             valid = true;
                             break;
                         } else if (serverJSON.get("status").equals("fail")||serverJSON.get("status").equals("error")){
@@ -97,17 +112,19 @@ public class Client {
                 }
                 
             }
+            
+            
             GameView game = new GameView();
             if (valid){
                 java.awt.EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                   
-                    game.setVisible(true);
-                    game.setOut(out);
-                    game.setIn(in);
+                    public void run() {
+                        game.setVisible(true);
+                        game.setOut(out);
+                        game.setIn(in);
+                    }
+                });
             }
-        });
-            }
+            
             while (valid) {
                 fromServer = in.readLine();
 
@@ -125,10 +142,17 @@ public class Client {
                                 System.out.println("Client: " + msg);
                                 out.println(msg);
                                 JSONObject response = getResponse(in);
-
                                 game.updatePlayerList(getUsernames(response));
                                 break;
                         }
+                    } else if (serverJSON.has("status")&&serverJSON.has("list of clients retrieved")){
+                        socketUDP = new DatagramSocket(clientPort, InetAddress.getByAddress(clientAddress.getBytes()));
+                        acceptor = new Acceptor(socketUDP);
+                        acceptor.setListPlayers(listPlayers);
+                        acceptor.setPlayerID(playerID);
+                        acceptorThread = new Thread(acceptor);
+                        acceptorThread.start();
+                        
                     }
                 }
             }
@@ -145,11 +169,27 @@ public class Client {
             System.exit(1);
         } catch (JSONException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+        }      
         
     }
- 
+    
+    public void initializeClient(){
+        String inputHostname = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Host Name:\n",
+                                "Enter Host Name",
+                                JOptionPane.QUESTION_MESSAGE);
+        
+        String inputPortNumber = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Port Number:\n",
+                                "Enter Port Number",
+                                JOptionPane.QUESTION_MESSAGE);
+        
+        hostName = inputHostname;
+        portNumber = Integer.parseInt(inputPortNumber);
+        valid = false;
+    }
     
     private static JSONObject getResponse(BufferedReader in) throws JSONException, IOException{
         JSONObject serverJSON = null;
@@ -166,20 +206,31 @@ public class Client {
         return serverJSON;
     }
     
-    private static ArrayList getUsernames(JSONObject response){
+    private ArrayList getUsernames(JSONObject response){
         System.out.println(response);
         try {
             ArrayList<String> usernames = new ArrayList<String>();
+            listPlayers = new ListPlayer();
             JSONArray client = response.getJSONArray("clients");
-            for (int i=0; i < client.length(); i++){
-                usernames.add(client.getJSONObject(i).getString("username"));
+            for (int i = 0; i < client.length(); i++) {
+                int playerId = response.getJSONArray("clients").getJSONObject(i).getInt("player_id");
+                String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
+                String address = response.getJSONArray("clients").getJSONObject(i).getString("address");
+                int port = response.getJSONArray("clients").getJSONObject(i).getInt("port");
+                listPlayers.addPlayer(playerId, username, address, port);
+                usernames.add(username);
             }
+            
             return usernames;
         } catch (JSONException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         
             return null;
         }
+    }
+    
+    public static void main(String[] args) throws IOException{
+        Client c = new Client();
     }
     
 }

@@ -58,7 +58,8 @@ public class ServerThread extends Thread {
                             jsonOut.put("description", "wrong request");
                             out.println(jsonOut);
                         } else if (!listPlayer.checkPlayerExisted(jsonIn.getString("username"))){
-                            player = listPlayer.addPlayer(playerId, jsonIn.getString("username"));
+                            player = listPlayer.addPlayer(playerId, jsonIn.getString("username"),jsonIn.getString("udp_address"),
+                                    jsonIn.getInt("udp_port"));
                             JSONObject jsonOut = new JSONObject();
                             jsonOut.put("status","ok");
                             jsonOut.put("player_id", playerId);

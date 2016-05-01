@@ -131,75 +131,6 @@ public class Acceptor implements Runnable {
         }
     }
     
-    public void getListClient() throws JSONException { //Masih dummy
-        JSONObject listClient = new JSONObject();
-        JSONObject client1 = new JSONObject();
-        client1.put("player_id",0);
-        client1.put("is_alive",1);
-        client1.put("address","127.0.0.1");
-        client1.put("port", 1111);
-        client1.put("username", "sister");
-        client1.put("role", "civillian");
-        
-        JSONObject client2 = new JSONObject();
-        client2.put("player_id",1);
-        client2.put("is_alive",1);
-        client2.put("address","127.0.0.1");
-        client2.put("port", 2222);
-        client2.put("username", "gaib");
-        client2.put("role", "werewolf");
-        
-        JSONObject client3 = new JSONObject();
-        client3.put("player_id",2);
-        client3.put("is_alive",1);
-        client3.put("address","127.0.0.1"   );
-        client3.put("port", 3333);
-        client3.put("username", "irk");
-        client3.put("role", "werewolf");
-                
-        JSONObject client4 = new JSONObject();
-        client4.put("player_id",3);
-        client4.put("is_alive",1);
-        client4.put("address","127.0.0.1");
-        client4.put("port", 4444);
-        client4.put("username", "basdat");
-        client4.put("role", "civillian");
-        
-        JSONObject client5 = new JSONObject();
-        client5.put("player_id",4);
-        client5.put("is_alive",1);
-        client5.put("address","127.0.0.1");
-        client5.put("port", 5555);
-        client5.put("username", "rpl");
-        client5.put("role", "civillian");
-        
-        JSONObject client6 = new JSONObject();
-        client6.put("player_id",5);
-        client6.put("is_alive",1);
-        client6.put("address","127.0.0.1");
-        client6.put("port", 6666);
-        client6.put("username", "labpro");
-        client6.put("role", "civillian");
-
-
-        listClient.put("status", "ok");
-        listClient.put("clients", new JSONArray(new Object[] { client1, client2, client3, client4, client5, client6} ));
-        listClient.put("description", "list of clients retrieved");
-        System.out.println(listClient.toString());
-        
-        for (int i = 0; i < 6; i++) {
-            int playerId = listClient.getJSONArray("clients").getJSONObject(i).getInt("player_id");
-            String username = listClient.getJSONArray("clients").getJSONObject(i).getString("username");
-            int role;
-            if (listClient.getJSONArray("clients").getJSONObject(i).getString("role").equals("civillian")) {
-                role = 0;
-            } else {
-                role = 1;
-            }
-            listPlayers.addPlayer(playerId, username);
-        }
-    }
-    
     public void checkIsProposer(){
         int[] listPlayerID = new int[6];
         
@@ -229,7 +160,7 @@ public class Acceptor implements Runnable {
 
                 buf = OKToOtherProposer.toString().getBytes();
                 InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(otherProposerID).getAddress().getBytes());
-                int port = Integer.parseInt(listPlayers.getPlayer(otherProposerID).getPort());
+                int port = listPlayers.getPlayer(otherProposerID).getPort();
                 sendData = new DatagramPacket(buf, buf.length, address,port);
                 socketUDP.send(sendData);
             } else { //Harus nunggu 2 proposal
@@ -255,26 +186,26 @@ public class Acceptor implements Runnable {
                             && (firstProposerID < secondProposerID))) {
                         buf = okResponse.toString().getBytes();
                         InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(secondProposerID).getAddress().getBytes());
-                        int port = Integer.parseInt(listPlayers.getPlayer(secondProposerID).getPort());
+                        int port = listPlayers.getPlayer(secondProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
 
                         buf = failResponse.toString().getBytes();
                         address = InetAddress.getByAddress(listPlayers.getPlayer(firstProposerID).getAddress().getBytes());
-                        port = Integer.parseInt(listPlayers.getPlayer(firstProposerID).getPort());
+                        port = listPlayers.getPlayer(firstProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
                     } else if ((firstProposerProposalID > secondProposerProposalID)||((firstProposerProposalID == secondProposerProposalID)
                             && (firstProposerID > secondProposerID))){
                         buf = okResponse.toString().getBytes();
                         InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(firstProposerID).getAddress().getBytes());
-                        int port = Integer.parseInt(listPlayers.getPlayer(firstProposerID).getPort());
+                        int port = listPlayers.getPlayer(firstProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
 
                         buf = failResponse.toString().getBytes();
                         address = InetAddress.getByAddress(listPlayers.getPlayer(secondProposerID).getAddress().getBytes());
-                        port = Integer.parseInt(listPlayers.getPlayer(secondProposerID).getPort());
+                        port = listPlayers.getPlayer(secondProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
                     } else {
@@ -302,7 +233,7 @@ public class Acceptor implements Runnable {
             buf = OKToOtherProposer.toString().getBytes();
             
             InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(otherProposerID).getAddress().getBytes());
-            int port = Integer.parseInt(listPlayers.getPlayer(otherProposerID).getPort());
+            int port = listPlayers.getPlayer(otherProposerID).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
             socketUDP.send(sendData);
         } catch (JSONException ex) {
@@ -321,7 +252,7 @@ public class Acceptor implements Runnable {
         try {
             byte[] buf = request.toString().getBytes();
             InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(playerId).getAddress().getBytes());
-            int port = Integer.parseInt(listPlayers.getPlayer(playerId).getPort());
+            int port = listPlayers.getPlayer(playerId).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
             socketAccept.send(sendData);
         } catch (IOException ex) {
@@ -345,4 +276,23 @@ public class Acceptor implements Runnable {
             Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    //GETTER AND SETTER
+    public ListPlayer getListPlayers() {
+        return listPlayers;
+    }
+
+    public void setListPlayers(ListPlayer listPlayers) {
+        this.listPlayers = listPlayers;
+    }
+
+    public int getPlayerID() {
+        return playerID;
+    }
+
+    public void setPlayerID(int playerID) {
+        this.playerID = playerID;
+    }
+    
+    
 }

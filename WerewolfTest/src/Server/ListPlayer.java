@@ -33,8 +33,8 @@ public class ListPlayer {
         this.players = players;
     }
     
-    public Player addPlayer(int id, String username){
-        Player newPlayer = new Player(id, username, "civilian");
+    public Player addPlayer(int id, String username, String address, int port){
+        Player newPlayer = new Player(id, username, "civilian", address, port);
         players.add(newPlayer);
         
         return newPlayer;

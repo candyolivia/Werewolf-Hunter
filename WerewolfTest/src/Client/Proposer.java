@@ -67,7 +67,7 @@ public class Proposer{
         try {
             byte[] buf = request.toString().getBytes();
             InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(playerId).getAddress().getBytes());
-            int port = Integer.parseInt(listPlayers.getPlayer(playerId).getPort());
+            int port = listPlayers.getPlayer(playerId).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
             socket.send(sendData);
         } catch (IOException ex) {
