@@ -117,7 +117,7 @@ public class ServerThread extends Thread {
                                         }
                                     }
                                     // send start command
-                                    listPlayer.randomRole();
+                                    //listPlayer.randomRole();
                                     JSONObject start = startMessage(player);
                                     out.println(start);
                                     System.out.println(start);

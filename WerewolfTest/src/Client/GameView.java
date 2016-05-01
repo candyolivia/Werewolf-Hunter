@@ -39,6 +39,7 @@ public class GameView extends javax.swing.JFrame {
         roundLabel.setVisible(false);
         phaseLabel.setVisible(false);
         roleLabel.setVisible(false);
+        statusLabel.setVisible(false);
         usernameLabel.setVisible(false);
         activePlayers.setVisible(false);
         //this.revalidate();
@@ -67,6 +68,7 @@ public class GameView extends javax.swing.JFrame {
         usernameLabel = new javax.swing.JLabel();
         phaseLabel = new javax.swing.JLabel();
         activePlayers = new javax.swing.JComboBox<>();
+        statusLabel = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -146,6 +148,10 @@ public class GameView extends javax.swing.JFrame {
         activePlayers.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
         activePlayers.setForeground(new java.awt.Color(102, 102, 102));
 
+        statusLabel.setFont(new java.awt.Font("Frank", 0, 28)); // NOI18N
+        statusLabel.setForeground(new java.awt.Color(255, 102, 102));
+        statusLabel.setText("Status: alive");
+
         javax.swing.GroupLayout readyPaneLayout = new javax.swing.GroupLayout(readyPane);
         readyPane.setLayout(readyPaneLayout);
         readyPaneLayout.setHorizontalGroup(
@@ -153,23 +159,28 @@ public class GameView extends javax.swing.JFrame {
             .addGroup(readyPaneLayout.createSequentialGroup()
                 .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addGap(149, 149, 149)
-                        .addComponent(phaseLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(readyPaneLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(readyPaneLayout.createSequentialGroup()
+                                .addGap(149, 149, 149)
+                                .addComponent(phaseLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(activePlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(15, 15, 15)))
+                        .addGap(73, 73, 73))
                     .addGroup(readyPaneLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(usernameLabel)
-                            .addComponent(roleLabel)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(activePlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(15, 15, 15)))
+                            .addComponent(roleLabel))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(statusLabel)))
                 .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addGap(107, 107, 107)
+                        .addGap(34, 34, 34)
                         .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
@@ -208,7 +219,8 @@ public class GameView extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(statusLabel))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(readyPaneLayout.createSequentialGroup()
@@ -245,26 +257,6 @@ public class GameView extends javax.swing.JFrame {
             System.out.println("Client: " + obj);
             out.println(obj);
             
-            /*String fromServer = in.readLine();
-
-            JSONObject serverJSON = new JSONObject(fromServer);
-
-            if (fromServer != null) {
-                System.out.println("Server: " + serverJSON);
-            }
-            
-            if (serverJSON.getString("status").equals("ok")){
-                readyButton.setVisible(false);
-                jScrollPane1.setVisible(true);
-                playerList.setVisible(true);
-                playerList.setLineWrap(true);
-                leaveButton.setVisible(true);
-                voteButton.setVisible(true);
-                //leaveButton.setEnabled(false);
-                //voteButton.setEnabled(false);
-                this.revalidate();
-            }
-            */
         }
         catch (JSONException ex) {
                     Logger.getLogger(GameView.class.getName()).log(Level.SEVERE, null, ex);
@@ -281,7 +273,6 @@ public class GameView extends javax.swing.JFrame {
                 voteButton.setEnabled(false);
                 this.revalidate();
         
-        //waitForStart();
     }//GEN-LAST:event_readyButtonActionPerformed
 
     private void leaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leaveButtonActionPerformed
@@ -296,6 +287,7 @@ public class GameView extends javax.swing.JFrame {
         catch (JSONException ex) {
                     Logger.getLogger(GameView.class.getName()).log(Level.SEVERE, null, ex);
                 }
+        System.exit(0);
     }//GEN-LAST:event_leaveButtonActionPerformed
 
     public synchronized void updatePlayerList(ArrayList usernames, ArrayList active){
@@ -314,7 +306,7 @@ public class GameView extends javax.swing.JFrame {
     public synchronized void startGame(String username, String role){
         roleLabel.setText(role);
         usernameLabel.setText(username);
-        
+        statusLabel.setVisible(true);
         leaveButton.setEnabled(true);
         voteButton.setEnabled(true);
         roundLabel.setVisible(true);
@@ -323,7 +315,23 @@ public class GameView extends javax.swing.JFrame {
         usernameLabel.setVisible(true);
         //this.revalidate();
     }
+    
+    public synchronized void updateRound(int round){
+        roundLabel.setText("Round " + round);
+    }
+    
+    public synchronized void updatePhase(String phase){
+        roundLabel.setText(phase + " Time");
+    }
 
+    public synchronized void updateStatus(int status){
+        if (status == 1)
+            statusLabel.setText("Status: Alive");
+        else
+            statusLabel.setText("Status: Dead");
+        
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> activePlayers;
     private javax.swing.JPanel jPanel1;
@@ -336,6 +344,7 @@ public class GameView extends javax.swing.JFrame {
     private javax.swing.JPanel readyPane;
     private javax.swing.JLabel roleLabel;
     private javax.swing.JLabel roundLabel;
+    private javax.swing.JLabel statusLabel;
     private javax.swing.JLabel usernameLabel;
     private javax.swing.JButton voteButton;
     // End of variables declaration//GEN-END:variables
