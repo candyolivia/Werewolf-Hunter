@@ -36,8 +36,8 @@ public class Acceptor implements Runnable {
     private boolean isLeaderSelected = false;
     private int playerID;
     private Proposer proposer;
+    private Thread proposerth;
     private boolean isConsensusTime = true;
-    private boolean isSendProposalTime  = false;
     private int counterPromiseNotProposer = 0;
     private int firstProposerProposalID, secondProposerProposalID, firstProposerID, secondProposerID;
     private int previousKPUId = -999;
@@ -48,85 +48,69 @@ public class Acceptor implements Runnable {
     public Acceptor(DatagramSocket _socketUDP) throws SocketException{
         this.socketUDP = _socketUDP;
         proposer = new Proposer(listPlayers, playerID);
+        proposerth = new Thread(proposer);
     }
             
     @Override
     public void run() {
-        
         while(true){
             if(isConsensusTime){
                 if(checkIsProposerTime){
                     checkIsProposer();
                     checkIsProposerTime = false;
-                    isSendProposalTime = true;
+                    proposer.setIsSendProposalTime(true);
                 }
-                if(isSendProposalTime){
-                    if(isProposer){
-                        try {
-                            proposer.prepareProposal();
-                        } catch (JSONException ex) {
-                            Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                buf = new byte[1024];
+                receiveData = new DatagramPacket(buf, buf.length);
+                try {
+                    socketUDP.receive(receiveData);
+                    String otherProposer = new String(receiveData.getData(), 0, receiveData.getLength());
+                    JSONObject otherJSON = new JSONObject(otherProposer);
+                    if(otherJSON.getString("method") == "prepare_proposal"){
+                        promise(otherJSON);
                     }
-                    countConsesusPaxos = 0;
-                    countReceivePromise = 0;
-                    isLeaderSelected = false;
-                    isSendProposalTime = false;
-                }
-                if(!proposer.getIsSendRequestTime()){
-                    buf = new byte[1024];
-                    receiveData = new DatagramPacket(buf, buf.length);
-                    try {
-                        socketUDP.receive(receiveData);
-                        String otherProposer = new String(receiveData.getData(), 0, receiveData.getLength());
-                        JSONObject otherJSON = new JSONObject(otherProposer);
-                        if(otherJSON.getString("method") == "prepare_proposal"){
-                            promise(otherJSON);
-                        }
-                        if(otherJSON.getString("method") == "accept_proposal"){
-                            accept(otherJSON);
-                        }
-                        if(isProposer){
-                            if(otherJSON.getString("status") != null){
-                                if(!isLeaderSelected){
-                                    countReceivePromise++;
-                                    if(otherJSON.getString("status") == "ok") countConsesusPaxos++;
-                                    if(countReceivePromise == listPlayers.getSize()-1) {
-                                        if(consensusPaxos(countConsesusPaxos)) isLeader = true;
-                                        countConsesusPaxos = 0;
-                                        if(isLeader){
-                                            proposer.setIsSendRequestTime(true);
-                                            broadcastAcceptedProposal();
-                                            proposer.setIsSendRequestTime(false);
-                                        }
-                                        isLeaderSelected = true;
+                    if(otherJSON.getString("method") == "accept_proposal"){
+                        accept(otherJSON);
+                    }
+                    if(isProposer){
+                        if(otherJSON.getString("status") != null){
+                            if(!isLeaderSelected){
+                                countReceivePromise++;
+                                if(otherJSON.getString("status") == "ok") countConsesusPaxos++;
+                                if(countReceivePromise == listPlayers.getSize()-1) {
+                                    if(consensusPaxos(countConsesusPaxos)) isLeader = true;
+                                    countConsesusPaxos = 0;
+                                    if(isLeader){
+                                        proposer.setIsSendRequestTime(true);
                                     }
+                                    isLeaderSelected = true;
                                 }
-                                if(isLeader){
-                                    countReceiveAccept++;
-                                    if(otherJSON.getString("status") == "ok") countConsesusPaxos++;
-                                    if(countReceiveAccept == listPlayers.getSize()-1){
-                                        if(consensusPaxos(countConsesusPaxos)){
-                                            isConsensusTime = false;
-                                            isKPU = true;
-                                            isLeader = false;
-                                        } else {
-                                            proposer.setIsSendRequestTime(true);
-                                            broadcastAcceptedProposal();
-                                            proposer.setIsSendRequestTime(false);
-                                        }
+                            }
+                            if(isLeader){
+                                countReceiveAccept++;
+                                if(otherJSON.getString("status") == "ok") countConsesusPaxos++;
+                                if(countReceiveAccept == listPlayers.getSize()-1){
+                                    if(consensusPaxos(countConsesusPaxos)){
+                                        proposerth.stop();
+                                        setIsConsensusTime(false);
+                                        proposer.setIsConsensusTime(false);
+                                        isKPU = true;
+                                        isLeader = false;
+                                    } else {
+                                        proposer.setIsSendRequestTime(true);
                                     }
                                 }
                             }
                         }
-                    } catch (IOException ex) {
-                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (JSONException ex) {
-                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                } catch (IOException ex) {
+                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (JSONException ex) {
+                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } else if(isKPU){
                 
+            } else if(isKPU){
+            
             }
         }
     }
@@ -141,9 +125,13 @@ public class Acceptor implements Runnable {
         Arrays.sort(listPlayerID);
         
         if (playerID == listPlayerID[listPlayerID.length-1] || playerID == listPlayerID[listPlayerID.length-2]) {
+            proposerth.start();
             isProposer = true;
+            proposer.setIsProposer(true);
+            
         } else {
             isProposer = false;
+            proposer.setIsProposer(false);
         }
     }
             
@@ -209,7 +197,10 @@ public class Acceptor implements Runnable {
                         sendData = new DatagramPacket(buf, buf.length, address,port);
                         socketUDP.send(sendData);
                     } else {
-                        isSendProposalTime = true;
+                        countConsesusPaxos = 0;
+                        countReceivePromise = 0;
+                        isLeaderSelected = false;
+                        proposer.setIsSendProposalTime(true);
                     }
                     counterPromiseNotProposer = 0;
                 }
@@ -248,33 +239,12 @@ public class Acceptor implements Runnable {
         return false;
     }
     
-    public void sendAcceptedProposal(DatagramSocket socketAccept, JSONObject request, int playerId) {
-        try {
-            byte[] buf = request.toString().getBytes();
-            InetAddress address = InetAddress.getByAddress(listPlayers.getPlayer(playerId).getAddress().getBytes());
-            int port = listPlayers.getPlayer(playerId).getPort();
-            sendData = new DatagramPacket(buf, buf.length, address,port);
-            socketAccept.send(sendData);
-        } catch (IOException ex) {
-            Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void broadcastAcceptedProposal() throws JSONException {
-        DatagramSocket socketAccept;
-        try {
-            socketAccept = new DatagramSocket();
-            JSONObject acceptedProposalJSON = new JSONObject();
-            acceptedProposalJSON.put("method","accept_proposal");
-            acceptedProposalJSON.put("proposal_id", new JSONArray(new Object[]{proposer.getProposalID(), playerID}));
-            acceptedProposalJSON.put("kpu_id", playerID);
-
-            for (int i = 0; i < listPlayers.getSize(); i++) {
-                sendAcceptedProposal(socketAccept, acceptedProposalJSON, i);
-            }
-        } catch (SocketException ex) {
-            Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    /**
+     * @param isConsensusTime the isConsensusTime to set
+     */
+    public void setIsConsensusTime(boolean isConsensusTime) {
+        this.isConsensusTime = isConsensusTime;
+        if(isConsensusTime) checkIsProposerTime = true;
     }
     
     //GETTER AND SETTER
