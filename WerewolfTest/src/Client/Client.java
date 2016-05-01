@@ -145,7 +145,7 @@ public class Client {
                                 System.out.println("Client: " + msg);
                                 out.println(msg);
                                 response = getResponse(in);
-//                                game.updatePlayerList(getUsernames(response));
+                                //game.updatePlayerList(getUsernames(response));
                                 if (response.has("status")){
                                     System.out.println("masuk sini");
                                     if (response.getString("status").equals("ok")) {
