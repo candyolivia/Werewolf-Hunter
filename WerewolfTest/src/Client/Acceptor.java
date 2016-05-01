@@ -127,45 +127,46 @@ public class Acceptor implements Runnable {
                     Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
-            } else if (!isConsensusTime) {
-                if(isKPU){
-                    try {
-                        KPU kpu = new KPU(socketUDP,playerID,listPlayers);
-                        Thread kpuThread = new Thread(kpu);
-                        kpuThread.start();
-                    } catch (JSONException ex) {
-                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-                try {
-                    socketUDP.receive(receiveData);
-                    if (receiveData != null) {
-                        JSONObject json = new JSONObject(new String(receiveData.getData()));
-                        while(json.has("kpu_id")) {
-                            System.err.println("acceptor receive : " + new String(receiveData.getData()));
-                            int kpuID = new JSONObject(new String(receiveData.getData())).getInt("kpu_id");
-                            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(kpuID).getAddress());
-                            int port = listPlayers.getPlayer(kpuID).getPort();
-
-                            JSONObject resKPU = new JSONObject();
-                            resKPU.put("status", "ok");
-                            resKPU.put("description", "accepted");
-
-                            buf = resKPU.toString().getBytes();
-                            sendData = new DatagramPacket(buf, buf.length, address,port);
-                            System.out.println("acceptor send : " + new String(sendData.getData()));
-                            socketUDP.send(sendData);
-
-                        }
-                    }
-                    
-                } catch (JSONException ex) {
-                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            
+            } 
+//            else if (!isConsensusTime) {
+//                if(isKPU){
+//                    try {
+//                        KPU kpu = new KPU(socketUDP,playerID,listPlayers);
+//                        Thread kpuThread = new Thread(kpu);
+//                        kpuThread.start();
+//                    } catch (JSONException ex) {
+//                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                }
+//                try {
+//                    socketUDP.receive(receiveData);
+//                    if (receiveData != null) {
+//                        JSONObject json = new JSONObject(new String(receiveData.getData()));
+//                        while(json.has("kpu_id")) {
+//                            System.err.println("acceptor receive : " + new String(receiveData.getData()));
+//                            int kpuID = new JSONObject(new String(receiveData.getData())).getInt("kpu_id");
+//                            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(kpuID).getAddress());
+//                            int port = listPlayers.getPlayer(kpuID).getPort();
+//
+//                            JSONObject resKPU = new JSONObject();
+//                            resKPU.put("status", "ok");
+//                            resKPU.put("description", "accepted");
+//
+//                            buf = resKPU.toString().getBytes();
+//                            sendData = new DatagramPacket(buf, buf.length, address,port);
+//                            System.out.println("acceptor send : " + new String(sendData.getData()));
+//                            socketUDP.send(sendData);
+//
+//                        }
+//                    }
+//                    
+//                } catch (JSONException ex) {
+//                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//            
             
         }
     }

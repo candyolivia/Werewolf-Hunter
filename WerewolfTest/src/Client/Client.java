@@ -145,18 +145,13 @@ public class Client {
                                 System.out.println("Client: " + msg);
                                 out.println(msg);
                                 response = getResponse(in);
-                                game.updatePlayerList(getUsernames(response));
+//                                game.updatePlayerList(getUsernames(response));
                                 if (response.has("status")){
                                     System.out.println("masuk sini");
                                     if (response.getString("status").equals("ok")) {
                                         socketUDP = new DatagramSocket(clientPort, InetAddress.getByName(clientAddress));
                                         //socketUDP.setSoTimeout(5000);
                                         acceptor = new Acceptor(socketUDP, listPlayers, playerID);
-                                        if (playerID == listPlayers.getSize()-1) {
-                                            acceptor.setIsKPU(true);
-                                            
-                                        }
-                                        acceptor.setIsConsensusTime(false);
                                         acceptorThread = new Thread(acceptor);
                                         acceptorThread.start();
                                     }
@@ -165,10 +160,7 @@ public class Client {
                                 break;
                         }
                     } 
-                    
                 }
-                
-                
             }
         } catch (UnknownHostException e) {
             JOptionPane.showMessageDialog(new JFrame(), "Unknown Host Name: " +
@@ -202,8 +194,8 @@ public class Client {
         
 //        hostName = inputHostname;
 //        portNumber = Integer.parseInt(inputPortNumber);
-       hostName = "localhost";
-       portNumber = 1234;
+       hostName = "127.0.0.1";
+       portNumber = 8005;
         valid = false;
     }
     
