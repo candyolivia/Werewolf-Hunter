@@ -53,29 +53,28 @@ public class ServerThread extends Thread {
                     JSONObject jsonIn = new JSONObject(inputLine);
                     if (playing == false) {
                         if (jsonIn.getString("username").equals("")) {
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                                    "\"status\": \"error\",\n" +
-                                                    "\"description\": \"wrong request\"}");
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status","error");
+                            jsonOut.put("description", "wrong request");
                             out.println(jsonOut);
                         } else if (!listPlayer.checkPlayerExisted(jsonIn.getString("username"))){
                             player = listPlayer.addPlayer(playerId, jsonIn.getString("username"));
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                                    "\"status\": \"ok\",\n" +
-                                                    "\"player_id\": " + playerId + "}");
-                            //playerId++;
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status","ok");
+                            jsonOut.put("player_id", playerId);
                             out.println(jsonOut);
                             username = jsonIn.getString("username");
                             valid = true;
                         } else {
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                                    "\"status\": \"fail\",\n" +
-                                                    "\"description\": \"user exists\"}");
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status", "fail");
+                            jsonOut.put("description","user exists");
                             out.println(jsonOut);
                         }
                     } else {
-                        JSONObject jsonOut = new JSONObject("{\n" +
-                                                "\"status\": \"fail\",\n" +
-                                                "\"description\": \"please wait, game is currently running\"}");
+                        JSONObject jsonOut = new JSONObject();
+                        jsonOut.put("status", "fail");
+                        jsonOut.put("description", "please wait, game is currently running");
                         out.println(jsonOut);
                     }
                     
@@ -92,17 +91,17 @@ public class ServerThread extends Thread {
                         JSONObject jsonIn = new JSONObject(inputLine);
                         if (jsonIn.getString("method").equals("leave")) {
                             listPlayer.removePlayer(username);
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                            "\"status\": \"ok\"}");
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status","ok");
                             out.println(jsonOut);
                             System.out.println(jsonOut);
                             //System.exit(0);
                         }
                         else if (jsonIn.getString("method").equals("ready")) {
                             player.setReady(true);
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                            "\"status\": \"ok\",\n" +
-                                            "\"description\": \"waiting for other player to start\"}");
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status","ok");
+                            jsonOut.put("description", "waiting for other player to start");
                             out.println(jsonOut);
                             System.out.println(jsonOut);
                             
@@ -128,9 +127,9 @@ public class ServerThread extends Thread {
                             
                         }
                         else if (jsonIn.getString("method").equals("client_address")) {
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                            "\"status\": \"ok\",\n" +
-                                            "\"description\": \"list of clients retrieved\"}");
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status", "ok");
+                            jsonOut.put("description", "list of clients retrieved");
                             JSONArray clients = new JSONArray();
                             for(int i=0; i < listPlayer.getSize(); i++){
                                 JSONObject player = new JSONObject();
@@ -151,9 +150,9 @@ public class ServerThread extends Thread {
                         }
                         
                         else {
-                            JSONObject jsonOut = new JSONObject("{\n" +
-                                            "\"status\": \"error\"\n," + 
-                                            "\"description\": \"wrong request\"}");
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status","error");
+                            jsonOut.put("description","wrong request");
                             out.println(jsonOut);
                             System.out.println(jsonOut);
                         }
@@ -164,9 +163,7 @@ public class ServerThread extends Thread {
             }
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
+        }       
     }
     
     //GETTER AND SETTER
@@ -270,10 +267,6 @@ public class ServerThread extends Thread {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-    }
-    
-    
-    
-    
+    }   
     
 }

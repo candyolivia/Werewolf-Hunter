@@ -24,14 +24,14 @@ import org.json.*;
  * @author Candy
  */
 public class Client {
+    private boolean isWerewolf;
+    private Acceptor acceptor;
+    
+    public Client(){
+        
+    }
+    
     public static void main(String[] args) throws IOException{
-        
-        /* if (args.length != 2) {
-            System.err.println(
-                "Usage: java EchoClient <host name> <port number>");
-            System.exit(1);
-        }*/
-        
         String inputHostname = (String)JOptionPane.showInputDialog(
                                 new JFrame(),
                                 "Enter Host Name:\n",
@@ -66,14 +66,12 @@ public class Client {
                                 "Enter Username:\n",
                                 "Enter Username",
                                 JOptionPane.QUESTION_MESSAGE);
-            //System.out.print("Masukkan username : ");
             
-            //fromUser = stdIn.readLine();
             while (inputUsername != null) {
                 try {
-                    JSONObject obj = new JSONObject("{\n" +
-                            "\"method\": \"join\",\n" +
-                            "\"username\": \""+inputUsername+"\"\n}");
+                    JSONObject obj = new JSONObject();
+                    obj.put("method", "join");
+                    obj.put("username",inputUsername);
                     System.out.println("Client: " + obj);
                     out.println(obj);
                     
@@ -115,8 +113,8 @@ public class Client {
                 if (fromUser.equals("leave")) {
                     JSONObject obj;
                     try {
-                        obj = new JSONObject("{\n" +
-                            "\"method\": \"leave\"\n}");
+                        obj = new JSONObject();
+                        obj.put("method","leave");
                         System.out.println("Client: " + obj);
                         out.println(obj);
                         
@@ -136,8 +134,8 @@ public class Client {
                     }
 
                 } else {
-                    JSONObject obj = new JSONObject("{\n" +
-                            "\"method\": \""+fromUser+"\"\n}");
+                    JSONObject obj = new JSONObject();
+                        obj.put("method", fromUser);
                         System.out.println("Client: " + obj);
                         out.println(obj);
                     
@@ -151,17 +149,6 @@ public class Client {
                 }
             }
             
-//            while ((fromServer = in.readLine()) != null) {
-//                System.out.println("Server: " + fromServer);
-//                if (fromServer.equals("Bye."))
-//                    break;
-//                
-//                fromUser = stdIn.readLine();
-//                if (fromUser != null) {
-//                    System.out.println("Client: " + fromUser);
-//                    out.println(fromUser);
-//                }
-//            }
         } catch (UnknownHostException e) {
             JOptionPane.showMessageDialog(new JFrame(), "Unknown Host Name: " +
                 hostName + ".", "Error", JOptionPane.ERROR_MESSAGE);
