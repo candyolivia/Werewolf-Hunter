@@ -117,7 +117,7 @@ public class ServerThread extends Thread {
                                         }
                                     }
                                     // send start command
-                                    listPlayer.randomRole();
+                                    //listPlayer.randomRole();
                                     JSONObject start = startMessage(player);
                                     out.println(start);
                                     System.out.println(start);
@@ -149,7 +149,20 @@ public class ServerThread extends Thread {
                             out.println(jsonOut);
                             System.out.println(jsonOut);
                         }
-                        
+                        else if (jsonIn.getString("description").equals("Kpu is selected")) {
+                            JSONObject jsonOut = new JSONObject();
+                            jsonOut.put("status","ok");
+                            jsonOut.put("description","get KPU");
+                            out.println(jsonOut);
+                            System.out.println(jsonOut);
+                            
+                            JSONObject kpuJSON = new JSONObject();
+                            kpuJSON.put("method","kpu_selected");
+                            kpuJSON.put("kpu_id", jsonIn.getInt("kpu_id"));
+                            out.println(kpuJSON);
+                            System.out.println(kpuJSON);
+                            
+                        }
                         else {
                             JSONObject jsonOut = new JSONObject();
                             jsonOut.put("status","error");

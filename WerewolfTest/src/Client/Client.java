@@ -42,15 +42,17 @@ public class Client {
     private String clientAddress;
     private int clientPort;
     private boolean isStart = false;
+    private Socket werewolfSocket;
     
     
-    public Client(){
+    
+    public Client() throws IOException{
         initializeClient();
+        werewolfSocket = new Socket(hostName, portNumber);
         try (
-            Socket kkSocket = new Socket(hostName, portNumber);
-            PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
+            PrintWriter out = new PrintWriter(werewolfSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(
-                new InputStreamReader(kkSocket.getInputStream()));
+                new InputStreamReader(werewolfSocket.getInputStream()));
         ) {
             
             BufferedReader stdIn =
@@ -140,18 +142,19 @@ public class Client {
                             case "": break;
                             case "start":
                                 //olah status
+                                game.startGame(inputUsername, serverJSON.getString("role"));
                                 JSONObject msg = new JSONObject();
                                 msg.put("method", "client_address");
                                 System.out.println("Client: " + msg);
                                 out.println(msg);
                                 response = getResponse(in);
-                                //game.updatePlayerList(getUsernames(response));
+                                game.updatePlayerList(getUsernames(response), getActivePlayers(response));
                                 if (response.has("status")){
                                     System.out.println("masuk sini");
                                     if (response.getString("status").equals("ok")) {
                                         socketUDP = new DatagramSocket(clientPort, InetAddress.getByName(clientAddress));
                                         //socketUDP.setSoTimeout(5000);
-                                        acceptor = new Acceptor(socketUDP, listPlayers, playerID);
+                                        acceptor = new Acceptor(socketUDP, listPlayers, playerID, werewolfSocket);
                                         acceptorThread = new Thread(acceptor);
                                         acceptorThread.start();
                                     }
@@ -230,6 +233,28 @@ public class Client {
             }
             
             return usernames;
+        } catch (JSONException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        
+            return null;
+        }
+    }
+    
+    private ArrayList getActivePlayers(JSONObject response){
+        System.out.println(response);
+        try {
+            ArrayList<String> players = new ArrayList<String>();
+            listPlayers = new ListPlayer();
+            JSONArray client = response.getJSONArray("clients");
+            for (int i = 0; i < client.length(); i++) {
+               
+                String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
+                
+                if (response.getJSONArray("clients").getJSONObject(i).getInt("is_alive") == 1)
+                    players.add(username);
+            }
+            
+            return players;
         } catch (JSONException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         

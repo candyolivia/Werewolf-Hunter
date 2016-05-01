@@ -7,9 +7,11 @@ package Client;
 
 import Server.ListPlayer;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -45,13 +47,15 @@ public class Acceptor implements Runnable {
     private int countConsesusPaxos = 0;
     private int countReceivePromise = 0;
     private int countReceiveAccept = 0;
+    private Socket socketServer;
     
-    public Acceptor(DatagramSocket _socketUDP, ListPlayer _listPlayers, int _playerID) throws SocketException{
+    public Acceptor(DatagramSocket _socketUDP, ListPlayer _listPlayers, int _playerID, Socket _sock) throws SocketException{
         this.socketUDP = _socketUDP;
         this.listPlayers = _listPlayers;
         this.playerID = _playerID;
         proposer = new Proposer(listPlayers, playerID);
         proposerth = new Thread(proposer);
+        socketServer = _sock;
     }
             
     @Override
@@ -85,8 +89,8 @@ public class Acceptor implements Runnable {
                         if(otherJSON.has("status")){
                             if(!isLeaderSelected){
                                 countReceivePromise++;
+                                proposer.getListAcceptorReceiveProposal().add(listPlayers.getPlayerId(receiveData.getAddress().toString(), receiveData.getPort()));
                                 if(otherJSON.getString("status").equals("ok")) {
-                                    proposer.getListAcceptorReceiveProposal().add(listPlayers.getPlayerId(receiveData.getAddress().toString(), receiveData.getPort()));
                                     countConsesusPaxos++;
                                 }
                                 System.out.println("ini jumlah list : " + listPlayers.getSize());
@@ -127,7 +131,9 @@ public class Acceptor implements Runnable {
                     Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
-            } 
+            } else {
+                System.out.println("okokokok");
+            }
 //            else if (!isConsensusTime) {
 //                if(isKPU){
 //                    try {
@@ -274,7 +280,7 @@ public class Acceptor implements Runnable {
     public void accept(JSONObject otherJSON) throws UnknownHostException, IOException{
         JSONArray arr;
         try {
-            arr = otherJSON.getJSONArray("proposal_id");
+            arr = otherJSON.getJSONArray("proposer_id");
             int otherProposerProposalID = arr.getInt(0);
             int otherProposerID = arr.getInt(1);
             JSONObject OKToOtherProposer = new JSONObject();
@@ -287,6 +293,18 @@ public class Acceptor implements Runnable {
             sendData = new DatagramPacket(buf, buf.length, address,port);
             System.out.println("acceptor send : " + new String(sendData.getData()));
             socketUDP.send(sendData);
+            
+            JSONObject sendDataJSON = new JSONObject(new String(sendData.getData()));
+            int kpu_id = otherJSON.getInt("kpu_id");
+            
+            PrintWriter out = new PrintWriter(socketServer.getOutputStream(), true);
+            JSONObject kpuSelected = new JSONObject();
+            kpuSelected.put("method", "accepted_proposal");
+            kpuSelected.put("kpu_id", kpu_id);
+            kpuSelected.put("description", "Kpu is selected");
+            System.out.println("KPU : " + kpuSelected.toString());
+            out.println(kpuSelected);
+            
         } catch (JSONException ex) {
             Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
         }
