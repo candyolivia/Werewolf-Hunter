@@ -190,8 +190,8 @@ public class GameView extends javax.swing.JFrame {
                 playerList.setLineWrap(true);
                 leaveButton.setVisible(true);
                 voteButton.setVisible(true);
-                //leaveButton.setEnabled(false);
-                //voteButton.setEnabled(false);
+                leaveButton.setEnabled(false);
+                voteButton.setEnabled(false);
                 this.revalidate();
         
         //waitForStart();
@@ -199,6 +199,16 @@ public class GameView extends javax.swing.JFrame {
 
     private void leaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leaveButtonActionPerformed
         // TODO add your handling code here:
+        JSONObject obj;
+        try {
+            obj = new JSONObject();
+            obj.put("method", "leave");
+            System.out.println("Client: " + obj);
+            out.println(obj);
+        }
+        catch (JSONException ex) {
+                    Logger.getLogger(GameView.class.getName()).log(Level.SEVERE, null, ex);
+                }
     }//GEN-LAST:event_leaveButtonActionPerformed
 
     public synchronized void updatePlayerList(ArrayList list){
@@ -208,6 +218,11 @@ public class GameView extends javax.swing.JFrame {
         }
         playerList.setText(players);
         
+    }
+    
+    public synchronized void startGame(){
+        leaveButton.setEnabled(true);
+        voteButton.setEnabled(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
