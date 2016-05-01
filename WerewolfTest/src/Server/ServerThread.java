@@ -230,4 +230,50 @@ public class ServerThread extends Thread {
             return null;
         }
     }
+    
+    private JSONObject changePhase(String time, int days){
+        try {
+            JSONObject msg = new JSONObject();
+            msg.put("method", "change_phase");
+            msg.put("time", time);
+            msg.put("days", days);
+            msg.put("description", "");
+            
+            return msg;
+        } catch (JSONException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+    
+    private JSONObject voteNow(String phase){
+        try {
+            JSONObject msg = new JSONObject();
+            msg.put("method", "vote_now");
+            msg.put("phase", phase);
+            return msg;
+        } catch (JSONException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+    
+    private JSONObject gameOver(String winner){
+        try {
+            JSONObject msg = new JSONObject();
+            msg.put("method", "game_over");
+            msg.put("winner", winner);
+            msg.put("description", "");
+            
+            return msg;
+        } catch (JSONException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+    
+    
+    
+    
+    
 }
