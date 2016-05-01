@@ -22,6 +22,17 @@ import org.json.JSONObject;
  * @author Candy
  */
 public class Server {
+    private static boolean checkAllReady(ListPlayer listPlayer){
+        boolean allready = true;
+        for(int i=0; i < listPlayer.getSize(); i++){
+            if (!listPlayer.getPlayer(i).isReady()){
+                allready = false;
+                break;
+            }   
+        }
+        return allready;
+    }
+    
     public static void main(String[] args) throws IOException {
         
         if (args.length != 1) {
@@ -35,24 +46,31 @@ public class Server {
         ListPlayer listPlayer = new ListPlayer();
         int numPlayers = 6;
         
+        
         boolean listening = true;
          
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
-            while (listening) {                              
+            while (listening) { 
                 ServerThread newServer = new ServerThread(serverSocket.accept());
                 if (!listPlayer.isEmpty()){
                     playerId = listPlayer.getLastId() + 1;
                 }
                 newServer.setPlayerId(playerId);
                 //newServer.setListPlayer(listPlayer);
-                if (listPlayer.getSize() > numPlayers) {
+                /*if (listPlayer.getSize() > numPlayers) {
                     newServer.setPlaying(true);
                 } else {
                     newServer.setPlaying(false);
-                }
+                }*/
+
                 newServer.start();
                 //listPlayer = newServer.getListPlayer();
-                listPlayer.print();
+                /*while (!checkAllReady(listPlayer)){
+                    System.out.println("notready");
+                    listPlayer.print();
+                }
+                System.out.println("ready");*/
+                //listPlayer.print();
                 //System.out.println("player: " + listPlayer.getSize() + " " + playerId);
                 // TODO : start game
              

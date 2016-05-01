@@ -58,7 +58,7 @@ public class ServerThread extends Thread {
                                                     "\"description\": \"wrong request\"}");
                             out.println(jsonOut);
                         } else if (!listPlayer.checkPlayerExisted(jsonIn.getString("username"))){
-                            player = listPlayer.addPlayer(playerId, jsonIn.getString("username"), 0);
+                            player = listPlayer.addPlayer(playerId, jsonIn.getString("username"));
                             JSONObject jsonOut = new JSONObject("{\n" +
                                                     "\"status\": \"ok\",\n" +
                                                     "\"player_id\": " + playerId + "}");
@@ -105,6 +105,27 @@ public class ServerThread extends Thread {
                                             "\"description\": \"waiting for other player to start\"}");
                             out.println(jsonOut);
                             System.out.println(jsonOut);
+                            
+                            Thread thread = new Thread(){
+                                public void run(){
+                                    while (!checkAllReady()){
+                                        try {
+                                            System.out.println("not ready");
+                                            sleep(1000);
+                                        } catch (InterruptedException ex) {
+                                            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                                        }
+                                    }
+                                    // send start command
+                                    listPlayer.randomRole();
+                                    JSONObject start = startMessage(player);
+                                    out.println(start);
+                                    System.out.println(start);
+                                }
+                            };
+
+                            thread.start();
+                            
                         }
                         else if (jsonIn.getString("method").equals("client_address")) {
                             JSONObject jsonOut = new JSONObject("{\n" +
@@ -181,4 +202,32 @@ public class ServerThread extends Thread {
         this.playing = playing;
     }
     
+    private boolean checkAllReady(){
+        boolean allready = true;
+        for(int i=0; i < listPlayer.getSize(); i++){
+            if (!listPlayer.getPlayer(i).isReady()){
+                allready = false;
+                break;
+            }   
+        }
+        return allready && (listPlayer.getSize() >= 3);
+    }
+    
+    private JSONObject startMessage(Player player){
+        try {
+            JSONObject msg = new JSONObject();
+            msg.put("method", "start");
+            msg.put("time", "day");
+            msg.put("role", player.getRole());
+            if (player.getRole().equals("werewolf")){
+                msg.put("friend", listPlayer.getWerewolfs());
+            }
+            msg.put("description", "game is started");
+            
+            return msg;
+        } catch (JSONException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
 }

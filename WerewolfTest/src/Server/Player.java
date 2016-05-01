@@ -12,7 +12,7 @@ package Server;
 public class Player {
     private int id;
     private String username;
-    private int role; //Werewolf (0) or Civillian(1)
+    private String role; //Werewolf (0) or Civillian(1)
     private String address = "address";
     private String port = "port";
     private int alive = 1;
@@ -20,7 +20,7 @@ public class Player {
     
 
     //CONSTRUCTOR
-    public Player(int _id, String _username, int _role) {
+    public Player(int _id, String _username, String _role) {
         id = _id;
         username = _username;
         role = _role;
@@ -57,14 +57,14 @@ public class Player {
     /**
      * @return the role
      */
-    public int getRole() {
+    public String getRole() {
         return role;
     }
 
     /**
      * @param role the role to set
      */
-    public void setRole(int role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
