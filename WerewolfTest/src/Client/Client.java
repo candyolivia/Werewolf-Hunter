@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -98,10 +99,11 @@ public class Client {
                 }
                 
             }
+            GameView game = new GameView();
             if (valid){
                 java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    GameView game = new GameView();
+                   
                     game.setVisible(true);
                     game.setOut(out);
                     game.setIn(in);
@@ -109,7 +111,7 @@ public class Client {
         });
             }
             while (valid) {
-                System.out.print("Masukkan method : ");
+                /*System.out.print("Masukkan method : ");
 
                 fromUser = stdIn.readLine();
                 if (fromUser.equals("leave")) {
@@ -150,7 +152,7 @@ public class Client {
                     }
                 }
             }
-            
+            */
 //            while ((fromServer = in.readLine()) != null) {
 //                System.out.println("Server: " + fromServer);
 //                if (fromServer.equals("Bye."))
@@ -161,7 +163,32 @@ public class Client {
 //                    System.out.println("Client: " + fromUser);
 //                    out.println(fromUser);
 //                }
-//            }
+//            
+                fromServer = in.readLine();
+
+                JSONObject serverJSON = new JSONObject(fromServer);
+
+                if (fromServer != null) {
+                    System.out.println("Server: " + serverJSON);
+                    if (serverJSON.has("method")){
+                    switch(serverJSON.getString("method")){
+                        case "": break;
+                        case "start":
+                            //olah status
+                            JSONObject msg = new JSONObject();
+                            msg.put("method", "client_address");
+                            System.out.println("Client: " + msg);
+                            out.println(msg);
+                            JSONObject response = getResponse(in);
+                            
+                            game.updatePlayerList(getUsernames(response));
+                            break;
+                    }
+                    }
+                }
+                
+                
+            }
         } catch (UnknownHostException e) {
             JOptionPane.showMessageDialog(new JFrame(), "Unknown Host Name: " +
                 hostName + ".", "Error", JOptionPane.ERROR_MESSAGE);
@@ -175,6 +202,40 @@ public class Client {
             System.exit(1);
         } catch (JSONException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
+ 
+    
+    private static JSONObject getResponse(BufferedReader in) throws JSONException, IOException{
+        JSONObject serverJSON = null;
+
+            String fromServer = in.readLine();
+
+            while (fromServer == null){
+                fromServer = in.readLine();
+            }
+
+            serverJSON = new JSONObject(fromServer);
+            System.out.println("Server: " + serverJSON);
+            
+        return serverJSON;
+    }
+    
+    private static ArrayList getUsernames(JSONObject response){
+        System.out.println(response);
+        try {
+            ArrayList<String> usernames = new ArrayList<String>();
+            JSONArray client = response.getJSONArray("clients");
+            for (int i=0; i < client.length(); i++){
+                usernames.add(client.getJSONObject(i).getString("username"));
+            }
+            return usernames;
+        } catch (JSONException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        
+            return null;
         }
     }
     

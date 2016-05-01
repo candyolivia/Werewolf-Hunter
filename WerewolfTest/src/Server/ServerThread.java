@@ -110,7 +110,7 @@ public class ServerThread extends Thread {
                                 public void run(){
                                     while (!checkAllReady()){
                                         try {
-                                            System.out.println("not ready");
+                                            //System.out.println("not ready");
                                             sleep(1000);
                                         } catch (InterruptedException ex) {
                                             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -210,7 +210,7 @@ public class ServerThread extends Thread {
                 break;
             }   
         }
-        return allready && (listPlayer.getSize() >= 3);
+        return allready && (listPlayer.getSize() >= 2);
     }
     
     private JSONObject startMessage(Player player){

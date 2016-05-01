@@ -8,6 +8,7 @@ package Client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONException;
@@ -24,6 +25,7 @@ public class GameView extends javax.swing.JFrame {
      */
     private PrintWriter out;
     private BufferedReader in;
+    private boolean isReadyButtonClicked = false;
     
     public GameView() {
         initComponents();
@@ -157,7 +159,7 @@ public class GameView extends javax.swing.JFrame {
             System.out.println("Client: " + obj);
             out.println(obj);
             
-            String fromServer = in.readLine();
+            /*String fromServer = in.readLine();
 
             JSONObject serverJSON = new JSONObject(fromServer);
 
@@ -172,37 +174,41 @@ public class GameView extends javax.swing.JFrame {
                 playerList.setLineWrap(true);
                 leaveButton.setVisible(true);
                 voteButton.setVisible(true);
-                leaveButton.setEnabled(false);
-                voteButton.setEnabled(false);
+                //leaveButton.setEnabled(false);
+                //voteButton.setEnabled(false);
                 this.revalidate();
             }
+            */
         }
-        catch (JSONException | IOException ex) {
+        catch (JSONException ex) {
                     Logger.getLogger(GameView.class.getName()).log(Level.SEVERE, null, ex);
                 }
         
-        waitForStart();
+                readyButton.setVisible(false);
+                jScrollPane1.setVisible(true);
+                playerList.setVisible(true);
+                playerList.setLineWrap(true);
+                leaveButton.setVisible(true);
+                voteButton.setVisible(true);
+                //leaveButton.setEnabled(false);
+                //voteButton.setEnabled(false);
+                this.revalidate();
+        
+        //waitForStart();
     }//GEN-LAST:event_readyButtonActionPerformed
 
     private void leaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leaveButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_leaveButtonActionPerformed
 
-    private void waitForStart(){
-        try {
-            String startMessage = in.readLine();
-            JSONObject startJSON = new JSONObject(startMessage);
-            if (startMessage != null) {
-                System.out.println("Server: " + startJSON);
-            }
-            else{
-                System.out.println("Server: null"); 
-            }
-        } catch (IOException | JSONException ex) {
-            Logger.getLogger(GameView.class.getName()).log(Level.SEVERE, null, ex);
+    public synchronized void updatePlayerList(ArrayList list){
+        String players ="";
+        for(int i=0; i<list.size(); i++){
+            players += (list.get(i) + "\n");
         }
+        playerList.setText(players);
+        
     }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel1;
