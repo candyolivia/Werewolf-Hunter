@@ -23,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import static java.util.Arrays.sort;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -37,17 +38,17 @@ public class Proposer implements Runnable{
     private ListPlayer listPlayers;
     private int playerID;
     private int proposalID = 0;
-    private boolean isConsensusTime = true;
-    private boolean isProposer = false;
-    private boolean isSendRequestTime = false;
-    private boolean isSendProposalTime  = false;
-    private ArrayList<Integer> listAcceptorReceiveProposal;
+    AtomicBoolean isConsensusTime = new AtomicBoolean(true);
+    AtomicBoolean isProposer = new AtomicBoolean(false);
+    AtomicBoolean isSendRequestTime = new AtomicBoolean(false);
+    AtomicBoolean isSendProposalTime = new AtomicBoolean(false);
+    private ArrayList<Integer> listAcceptorReceive;
      
     public Proposer(ListPlayer _listPlayer, int _playerID) throws SocketException{
         socket = new DatagramSocket();
         this.listPlayers = _listPlayer;
         this.playerID = _playerID;
-        listAcceptorReceiveProposal = new ArrayList<Integer>();
+        listAcceptorReceive = new ArrayList<Integer>();
         buf = new byte[1024];
     }
     
@@ -55,10 +56,10 @@ public class Proposer implements Runnable{
     public void run() {
         int i = 0;
         while(true){
-            if(isConsensusTime){
-                if(isProposer){
+            //System.err.println(getIsSendProposalTime() + " " + ++i);
+            if(getIsConsensusTime()){
+                if(getIsProposer()){
                     if(getIsSendProposalTime()){
-                        System.out.println("masih send proposal" + ++i);
                         try {
                             prepareProposal();
                         } catch (JSONException ex) {
@@ -75,21 +76,20 @@ public class Proposer implements Runnable{
                         setIsSendRequestTime(false);
                     }
                 }
+            } else {
+                break;
             }
         }
+        return;
     }
     
     public void prepareProposal() throws JSONException {
-        System.err.println("prepare proposal proposer");
         JSONObject prepareProposalJSON = new JSONObject();
         prepareProposalJSON.put("method","prepare_proposal");
         prepareProposalJSON.put("proposal_id", new JSONArray(new Object[]{proposalID, playerID}));
-        
-        proposalID++;
-        
         for (int i = 0; i < listPlayers.getSize(); i++) {
             int playerDestinationId = listPlayers.getPlayer(i).getId();
-            if (playerDestinationId != playerID && !listAcceptorReceiveProposal.contains(playerDestinationId)) {
+            if (playerDestinationId != playerID && !listAcceptorReceive.contains(playerDestinationId)) {
                 sendRequest(prepareProposalJSON, i);
             }
         }
@@ -169,42 +169,50 @@ public class Proposer implements Runnable{
      * @param isConsensusTime the isConsensusTime to set
      */
     public void setIsConsensusTime(boolean isConsensusTime) {
-        this.isConsensusTime = isConsensusTime;
+        this.isConsensusTime.set(isConsensusTime);
+    }
+    
+    public boolean getIsConsensusTime(){
+        return isConsensusTime.get();
     }
 
     /**
      * @param isProposer the isProposer to set
      */
     public void setIsProposer(boolean isProposer) {
-        this.isProposer = isProposer;
+        this.isProposer.set(isProposer);
     }
 
+    public boolean getIsProposer(){
+        return isProposer.get();
+    }
+    
     /**
      * @return the isSendRequestTime
      */
     public boolean getIsSendRequestTime() {
-        return isSendRequestTime;
+        return isSendRequestTime.get();
     }
 
     /**
      * @param isSendRequestTime the isSendRequestTime to set
      */
     public void setIsSendRequestTime(boolean isSendRequestTime) {
-        this.isSendRequestTime = isSendRequestTime;
+        this.isSendRequestTime.set(isSendRequestTime);
     }
 
     /**
      * @return the isSendProposalTime
      */
     public boolean getIsSendProposalTime() {
-        return isSendProposalTime;
+        return isSendProposalTime.get();
     }
 
     /**
      * @param isSendProposalTime the isSendProposalTime to set
      */
     public void setIsSendProposalTime(boolean isSendProposalTime) {
-        this.isSendProposalTime = isSendProposalTime;
+        this.isSendProposalTime.set(isSendProposalTime);
     }
     
     public void sendAcceptedProposal(DatagramSocket socketAccept, JSONObject request, int playerId) {
@@ -228,16 +236,23 @@ public class Proposer implements Runnable{
             acceptedProposalJSON.put("method","accept_proposal");
             acceptedProposalJSON.put("proposal_id", new JSONArray(new Object[]{getProposalID(), playerID}));
             acceptedProposalJSON.put("kpu_id", playerID);
-
+            
+            System.out.println("ini isi list : " + listAcceptorReceive.toString());
             for (int i = 0; i < listPlayers.getSize(); i++) {
-                sendAcceptedProposal(socketAccept, acceptedProposalJSON, i);
+                if (!listAcceptorReceive.contains(i)) {
+                    sendAcceptedProposal(socketAccept, acceptedProposalJSON, i);
+                }
             }
         } catch (SocketException ex) {
             Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public ArrayList<Integer> getListAcceptorReceiveProposal() {
-        return this.listAcceptorReceiveProposal;
+    public ArrayList<Integer> getListAcceptorReceive() {
+        return this.listAcceptorReceive;
+    }
+    
+    public void incrementProposalId(){
+        proposalID++;
     }
 }

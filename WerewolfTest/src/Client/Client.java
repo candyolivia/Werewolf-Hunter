@@ -150,7 +150,7 @@ public class Client {
                                 response = getResponse(in);
                                 game.updatePlayerList(getUsernames(response), getActivePlayers(response));
                                 if (response.has("status")){
-                                    System.out.println("masuk sini");
+                                    //System.out.println("masuk sini");
                                     if (response.getString("status").equals("ok")) {
                                         socketUDP = new DatagramSocket(clientPort, InetAddress.getByName(clientAddress));
                                         //socketUDP.setSoTimeout(5000);
@@ -159,7 +159,7 @@ public class Client {
                                         acceptorThread.start();
                                     }
                                 }
-                                System.out.println("masuk sini3");
+                                //System.out.println("masuk sini3");
                                 break;
                         }
                     } 
@@ -198,7 +198,7 @@ public class Client {
 //        hostName = inputHostname;
 //        portNumber = Integer.parseInt(inputPortNumber);
        hostName = "127.0.0.1";
-       portNumber = 8005;
+       portNumber = 1234;
         valid = false;
     }
     

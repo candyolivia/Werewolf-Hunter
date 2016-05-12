@@ -16,6 +16,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
@@ -47,15 +49,21 @@ public class Acceptor implements Runnable {
     private int countConsesusPaxos = 0;
     private int countReceivePromise = 0;
     private int countReceiveAccept = 0;
+    private int countReceiveFromWerewolf = 0;
+    private int countReceiveForDay = 0;
+    private Map<Integer, Integer> votedByWerewolf;
+    private Map<Integer, Integer> votedForDay;
     private Socket socketServer;
     
     public Acceptor(DatagramSocket _socketUDP, ListPlayer _listPlayers, int _playerID, Socket _sock) throws SocketException{
         this.socketUDP = _socketUDP;
         this.listPlayers = _listPlayers;
         this.playerID = _playerID;
+        votedForDay = new HashMap<Integer, Integer>();
+        votedByWerewolf = new HashMap<Integer, Integer>();
         proposer = new Proposer(listPlayers, playerID);
         proposerth = new Thread(proposer);
-        socketServer = _sock;
+        this.socketServer = _sock;
     }
             
     @Override
@@ -63,15 +71,15 @@ public class Acceptor implements Runnable {
         while(true){
             if(isConsensusTime){
                 if(checkIsProposerTime){
+                    countReceivePromise = 0;
+                    countReceiveAccept = 0;
+                    countConsesusPaxos = 0;
                     checkIsProposer();
                     checkIsProposerTime = false;
                     proposer.setIsSendProposalTime(true);
                 }
                 buf = new byte[1024];
                 receiveData = new DatagramPacket(buf, buf.length);
-                //System.out.println("nilai count receive accept : " + countReceiveAccept);
-                System.out.println("nilai count receive promise : " + countReceivePromise);
-                System.out.println("nilai count consensus : " + countConsesusPaxos);
                 try {
                     socketUDP.receive(receiveData);
                     System.err.println("acceptor receive : " + new String(receiveData.getData()));
@@ -82,102 +90,243 @@ public class Acceptor implements Runnable {
                             promise(otherJSON);
                         }
                         if(otherJSON.getString("method").equals("accept_proposal")){
+                            if(!isLeader) socketUDP.setSoTimeout(0);
                             accept(otherJSON);
                         }
                     }
-                    if(isProposer){
+                    if(getIsProposer()){
                         if(otherJSON.has("status")){
                             if(!isLeaderSelected){
                                 countReceivePromise++;
-                                proposer.getListAcceptorReceiveProposal().add(listPlayers.getPlayerId(receiveData.getAddress().toString(), receiveData.getPort()));
+                                proposer.getListAcceptorReceive().add(listPlayers.getPlayerId(receiveData.getAddress().toString().substring(1), receiveData.getPort()));
                                 if(otherJSON.getString("status").equals("ok")) {
                                     countConsesusPaxos++;
                                 }
-                                System.out.println("ini jumlah list : " + listPlayers.getSize());
                                 if(countReceivePromise == listPlayers.getSize()-1) {
-                                    System.out.println("masuk ke sama dengan");
+                                    proposer.incrementProposalId();
                                     if(consensusPaxos(countConsesusPaxos)) isLeader = true;
                                     countConsesusPaxos = 0;
+                                    proposer.getListAcceptorReceive().clear();
+                                    isLeaderSelected = true;
                                     if(isLeader){
+                                        System.out.println("jadi leader");
+                                        proposer.setProposalID(proposer.getProposalID()-1);
                                         proposer.setIsSendRequestTime(true);
                                     }
-                                    isLeaderSelected = true;
                                 }
-                            }
-                            if(isLeader){
+                            } else if(isLeader){
+                                System.out.println("masuk isleader");
                                 countReceiveAccept++;
+                                proposer.getListAcceptorReceive().add(listPlayers.getPlayerId(receiveData.getAddress().toString().substring(1), receiveData.getPort()));
                                 if(otherJSON.getString("status").equals("ok")) countConsesusPaxos++;
-                                if(countReceiveAccept == listPlayers.getSize()-1){
+                                if(countReceiveAccept == listPlayers.getSize()){
+                                    System.out.println("masuk receive accept");
                                     if(consensusPaxos(countConsesusPaxos)){
+                                        System.out.println("masuk receive consensus accept");
+                                        proposer.incrementProposalId();
                                         //proposerth.stop();
-                                        setIsConsensusTime(false);
-                                        proposer.setIsConsensusTime(false);
                                         isKPU = true;
                                         isLeader = false;
-                                    } else {
-                                        proposer.setIsSendRequestTime(true);
+                                        System.out.println("jadi kpu");
+                                        setIsConsensusTime(false);
+                                        socketUDP.setSoTimeout(0);
+                                        proposerth.join();
                                     }
                                 }
                             }
                         }
                     }
-                /*} catch (SocketTimeoutException e) {
-                    System.out.println("Timeout broooo");
-                    //proposer.setIsSendProposalTime(true);
-                    continue;*/
+                } catch (SocketTimeoutException e) {
+                    System.out.println("masuk timeout");
+                    System.err.println("ini jumlah dalam list diterima : " + proposer.getListAcceptorReceive().size());
+                    if(getIsProposer() && !isLeader){
+                        if(countReceivePromise < listPlayers.getSize()-1){
+                            System.out.println("masuk sini ngirim proposal lagi");
+                            proposer.setIsSendProposalTime(true);
+                        }
+                    }
+                    if(isLeader){
+                        if(countReceiveAccept < listPlayers.getSize()){
+                            System.out.println("masuk sini ngirim accept lagi");
+                            proposer.setIsSendRequestTime(true);
+                        }
+                    }
+                    continue;
+                } catch (IOException ex) {
+                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (JSONException ex) {
+                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+            } else if(isKPU){
+                System.err.println("jadi kpu");
+                buf = new byte[1024];
+                receiveData = new DatagramPacket(buf, buf.length);
+                try {
+                    socketUDP.receive(receiveData);
+                    String otherProposer = new String(receiveData.getData(), 0, receiveData.getLength());
+                    JSONObject otherJSON = new JSONObject(otherProposer);
+                    if(otherJSON.getString("method").equals("vote_werewolf")){
+                        int valueVoted = otherJSON.getInt("player_id");
+                        if(votedByWerewolf.containsKey(valueVoted)){
+                            votedByWerewolf.put(valueVoted,votedByWerewolf.get(valueVoted)+1);
+                        } else {
+                            votedByWerewolf.put(valueVoted, 0);
+                        }
+                        countReceiveFromWerewolf++;
+                        if(countReceiveFromWerewolf == listPlayers.getWerewolfAlive()){
+                            JSONObject responseToClient = new JSONObject();
+                            JSONArray votedByClient = new JSONArray();
+                            JSONObject requestToServer = new JSONObject();
+                            requestToServer.put("method", "vote_result_werewolf");
+                            if(consensusPaxos(votedByWerewolf.get(valueVoted))){
+                                responseToClient.put("status", "ok");
+                                responseToClient.put("description", "");
+                                requestToServer.put("vote_status", 1);
+                                requestToServer.put("player_killed", valueVoted);
+                            } else {
+                                responseToClient.put("status", "fail");
+                                responseToClient.put("description", "");
+                                requestToServer.put("vote_status", -1);
+                            }
+                            buf = responseToClient.toString().getBytes();
+                            Thread thread = new Thread(){
+                                public void run(){
+                                    try {
+                                        for(int i = 0; i < listPlayers.getSize(); ++i){
+                                            if(listPlayers.getPlayer(i).getRole().equals("werewolf") && listPlayers.getPlayer(i).getAlive() == 1){
+                                                InetAddress address = InetAddress.getByName(listPlayers.getPlayer(i).getAddress());
+                                                int port = listPlayers.getPlayer(i).getPort();
+                                                sendData = new DatagramPacket(buf, buf.length, address, port);
+                                                socketUDP.send(sendData);
+                                            }
+                                        }
+                                    } catch (UnknownHostException ex) {
+                                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                                    } catch (IOException ex) {
+                                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+                            };
+                            thread.start();
+                            
+                            for(int i = 0; i < votedByWerewolf.size(); ++i){
+                                JSONArray temp = new JSONArray();
+                                if(votedByWerewolf.containsKey(i)){
+                                    temp.put(i);
+                                    temp.put(votedByWerewolf.get(i));
+                                    votedByClient.put(temp);
+                                }
+                            }
+                            requestToServer.put("vote_result", votedByClient);
+                            PrintWriter out = new PrintWriter(socketServer.getOutputStream(), true);
+                            out.println(requestToServer);
+                            
+                        }
+                    } else if(otherJSON.getString("method").equals("vote_civilian")){
+                        int valueVoted = otherJSON.getInt("player_id");
+                        if(votedForDay.containsKey(valueVoted)){
+                            votedForDay.put(valueVoted,votedForDay.get(valueVoted)+1);
+                        } else {
+                            votedForDay.put(valueVoted, 0);
+                        }
+                        countReceiveForDay++;
+                        if(countReceiveForDay == listPlayers.getPlayersAlive()){
+                            JSONObject responseToClient = new JSONObject();
+                            JSONArray votedByClient = new JSONArray();
+                            JSONObject requestToServer = new JSONObject();
+                            requestToServer.put("method", "vote_result_civilian");
+                            int resultConsensus = consensusPaxosForDay(votedForDay);
+                            if(resultConsensus > -999){
+                                responseToClient.put("status", "ok");
+                                responseToClient.put("description", "");
+                                requestToServer.put("vote_status", 1);
+                                requestToServer.put("player_killed", resultConsensus);
+                            } else {
+                                responseToClient.put("status", "fail");
+                                responseToClient.put("description", "");
+                                requestToServer.put("vote_status", -1);
+                            }
+                            
+                            buf = responseToClient.toString().getBytes();
+                            Thread thread = new Thread(){
+                                public void run(){
+                                    try {
+                                        for(int i = 0; i < listPlayers.getSize(); ++i){
+                                            if(listPlayers.getPlayer(i).getAlive() == 1){
+                                                InetAddress address = InetAddress.getByName(listPlayers.getPlayer(i).getAddress());
+                                                int port = listPlayers.getPlayer(i).getPort();
+                                                sendData = new DatagramPacket(buf, buf.length, address, port);
+                                                socketUDP.send(sendData);
+                                            }
+                                        }
+                                    } catch (UnknownHostException ex) {
+                                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                                    } catch (IOException ex) {
+                                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+                            };
+                            thread.start();
+                            
+                            for(int i = 0; i < votedByWerewolf.size(); ++i){
+                                JSONArray temp = new JSONArray();
+                                if(votedByWerewolf.containsKey(i)){
+                                    temp.put(i);
+                                    temp.put(votedByWerewolf.get(i));
+                                    votedByClient.put(temp);
+                                }
+                            }
+                            requestToServer.put("vote_result", votedByClient);
+                            PrintWriter out = new PrintWriter(socketServer.getOutputStream(), true);
+                            out.println(requestToServer);
+                        }
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (JSONException ex) {
+                    try {
+                        JSONObject responseToClient = new JSONObject();
+                        responseToClient.put("status", "error");
+                        responseToClient.put("description", "");
+                        buf = responseToClient.toString().getBytes();
+                        InetAddress address = receiveData.getAddress();
+                        int port = receiveData.getPort();
+                        sendData = new DatagramPacket(buf, buf.length, address, port);
+                        socketUDP.send(sendData);
+                    } catch (JSONException ex1) {
+                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex1);
+                    } catch (IOException ex1) {
+                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
+                }
+            } else {
+                buf = new byte[1024];
+                receiveData = new DatagramPacket(buf, buf.length);
+                try {
+                    socketUDP.receive(receiveData);
+                    String dataIn = new String(receiveData.getData(), 0, receiveData.getLength());
+                    JSONObject otherJSON = new JSONObject(dataIn);
+                    if(otherJSON.has("status")){
+                        if(otherJSON.getString("status").equals("ok")) {
+                            
+                        } else if(otherJSON.getString("status").equals("fail")) {
+                        
+                        }
+                    }
                 } catch (IOException ex) {
                     Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (JSONException ex) {
                     Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
-            } else {
-                System.out.println("okokokok");
             }
-//            else if (!isConsensusTime) {
-//                if(isKPU){
-//                    try {
-//                        KPU kpu = new KPU(socketUDP,playerID,listPlayers);
-//                        Thread kpuThread = new Thread(kpu);
-//                        kpuThread.start();
-//                    } catch (JSONException ex) {
-//                        Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                }
-//                try {
-//                    socketUDP.receive(receiveData);
-//                    if (receiveData != null) {
-//                        JSONObject json = new JSONObject(new String(receiveData.getData()));
-//                        while(json.has("kpu_id")) {
-//                            System.err.println("acceptor receive : " + new String(receiveData.getData()));
-//                            int kpuID = new JSONObject(new String(receiveData.getData())).getInt("kpu_id");
-//                            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(kpuID).getAddress());
-//                            int port = listPlayers.getPlayer(kpuID).getPort();
-//
-//                            JSONObject resKPU = new JSONObject();
-//                            resKPU.put("status", "ok");
-//                            resKPU.put("description", "accepted");
-//
-//                            buf = resKPU.toString().getBytes();
-//                            sendData = new DatagramPacket(buf, buf.length, address,port);
-//                            System.out.println("acceptor send : " + new String(sendData.getData()));
-//                            socketUDP.send(sendData);
-//
-//                        }
-//                    }
-//                    
-//                } catch (JSONException ex) {
-//                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-//                } catch (IOException ex) {
-//                    Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//            
-            
         }
     }
     
     public void checkIsProposer(){
+        System.out.println("check proposer lagi");
         int[] listPlayerID = new int[6];
         
         for (int i = 0; i < listPlayers.getSize(); i++) {
@@ -188,18 +337,25 @@ public class Acceptor implements Runnable {
         
         if (playerID == listPlayerID[listPlayerID.length-1] || playerID == listPlayerID[listPlayerID.length-2]) {
             proposerth.start();
-            isProposer = true;
-            proposer.setIsProposer(true);
-            
+            try {
+                socketUDP.setSoTimeout(5000);
+            } catch (SocketException ex) {
+                Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            setIsProposer(true);
         } else {
-            isProposer = false;
-            proposer.setIsProposer(false);
+            setIsProposer(false);
+            try {
+                socketUDP.setSoTimeout(0);
+            } catch (SocketException ex) {
+                Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
             
     public void promise(JSONObject otherJSON) throws JSONException {
         try {                
-            if (isProposer) {
+            if (getIsProposer()) {
                 JSONArray arr = otherJSON.getJSONArray("proposal_id");
                 int otherProposerProposalID = arr.getInt(0);
                 int otherProposerID = arr.getInt(1);
@@ -244,7 +400,7 @@ public class Acceptor implements Runnable {
                         address = InetAddress.getByName(listPlayers.getPlayer(firstProposerID).getAddress());
                         port = listPlayers.getPlayer(firstProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
-                        System.out.println("acceptor send : " + new String(sendData.getData()));
+                        //System.out.println("acceptor send : " + new String(sendData.getData()));
                         socketUDP.send(sendData);
                     } else if ((firstProposerProposalID > secondProposerProposalID)||((firstProposerProposalID == secondProposerProposalID)
                             && (firstProposerID > secondProposerID))){
@@ -258,20 +414,12 @@ public class Acceptor implements Runnable {
                         address = InetAddress.getByName(listPlayers.getPlayer(secondProposerID).getAddress());
                         port = listPlayers.getPlayer(secondProposerID).getPort();
                         sendData = new DatagramPacket(buf, buf.length, address,port);
-                        System.out.println("acceptor send : " + new String(sendData.getData()));
+                        //System.out.println("acceptor send : " + new String(sendData.getData()));
                         socketUDP.send(sendData);
-                    } else {
-                        System.out.println("masuk else");
-                        countConsesusPaxos = 0;
-                        countReceivePromise = 0;
-                        isLeaderSelected = false;
-                        proposer.setIsSendProposalTime(true);
                     }
                     counterPromiseNotProposer = 0;
                 }
-            }   
-        } catch (SocketException ex) {
-            Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (IOException ex) {
             Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -280,7 +428,7 @@ public class Acceptor implements Runnable {
     public void accept(JSONObject otherJSON) throws UnknownHostException, IOException{
         JSONArray arr;
         try {
-            arr = otherJSON.getJSONArray("proposer_id");
+            arr = otherJSON.getJSONArray("proposal_id");
             int otherProposerProposalID = arr.getInt(0);
             int otherProposerID = arr.getInt(1);
             JSONObject OKToOtherProposer = new JSONObject();
@@ -291,7 +439,7 @@ public class Acceptor implements Runnable {
             InetAddress address = InetAddress.getByName(listPlayers.getPlayer(otherProposerID).getAddress());
             int port = listPlayers.getPlayer(otherProposerID).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
-            System.out.println("acceptor send : " + new String(sendData.getData()));
+            //System.out.println("acceptor send : " + new String(sendData.getData()));
             socketUDP.send(sendData);
             
             JSONObject sendDataJSON = new JSONObject(new String(sendData.getData()));
@@ -304,8 +452,13 @@ public class Acceptor implements Runnable {
             kpuSelected.put("description", "Kpu is selected");
             System.out.println("KPU : " + kpuSelected.toString());
             out.println(kpuSelected);
-            
+            if(!isLeader) {
+                setIsConsensusTime(false);
+                proposerth.join();
+            }
         } catch (JSONException ex) {
+            Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
             Logger.getLogger(Acceptor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -317,11 +470,23 @@ public class Acceptor implements Runnable {
         return false;
     }
     
+    public int consensusPaxosForDay(Map<Integer, Integer> vote) {
+        for(int i = 0; i < vote.size(); ++i){
+            if(vote.containsKey(i)){
+                if(consensusPaxos(vote.get(i))){
+                    return i;
+                }
+            }
+        }
+        return -999;
+    }
+    
     /**
      * @param isConsensusTime the isConsensusTime to set
      */
     public void setIsConsensusTime(boolean isConsensusTime) {
         this.isConsensusTime = isConsensusTime;
+        proposer.setIsConsensusTime(isConsensusTime);
         if(isConsensusTime) checkIsProposerTime = true;
     }
     
@@ -341,7 +506,7 @@ public class Acceptor implements Runnable {
     public void setPlayerID(int playerID) {
         this.playerID = playerID;
     }
-
+    
     public boolean isIsKPU() {
         return isKPU;
     }
@@ -349,6 +514,19 @@ public class Acceptor implements Runnable {
     public void setIsKPU(boolean isKPU) {
         this.isKPU = isKPU;
     }
-    
-    
+
+    /**
+     * @return the isProposer
+     */
+    public boolean getIsProposer() {
+        return isProposer;
+    }
+
+    /**
+     * @param isProposer the isProposer to set
+     */
+    public void setIsProposer(boolean isProposer) {
+        this.isProposer = isProposer;
+        proposer.setIsProposer(isProposer);
+    }
 }

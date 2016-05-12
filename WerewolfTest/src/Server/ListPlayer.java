@@ -140,4 +140,20 @@ public class ListPlayer {
         
         return werewolfs;
     }
+    
+    public int getWerewolfAlive(){
+        int count = 0;
+        for(int i = 0; i < players.size(); ++i){
+            if(getPlayer(i).getRole().equals("werewolf") && getPlayer(i).getAlive() == 1) ++count;
+        }
+        return count;
+    }
+    
+    public int getPlayersAlive(){
+        int count = 0;
+        for(int i = 0; i < players.size(); ++i){
+            if(getPlayer(i).getAlive() == 1) ++count;
+        }
+        return count;
+    }
 }
