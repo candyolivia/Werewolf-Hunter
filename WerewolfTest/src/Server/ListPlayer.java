@@ -20,7 +20,7 @@ import org.json.JSONObject;
  */
 public class ListPlayer {
     private static ArrayList<Player> players = new ArrayList<Player>();
-
+    
     private ArrayList werewolfId = randomRole();
     
     public ArrayList getPlayers() {
