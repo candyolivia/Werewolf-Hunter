@@ -36,6 +36,15 @@ public class ListPlayer {
         return -999;
     }
     
+    public int getPlayerId(String nameplayer){
+        for(int i = 0; i < players.size()-1; ++i){
+            if(players.get(i).getUsername().equals(nameplayer)){
+                return players.get(i).getId();
+            }
+        }
+        return -999;
+    }
+    
     public Player getPlayer(int i){
         return players.get(i);
     }
