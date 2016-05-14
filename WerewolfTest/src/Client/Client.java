@@ -44,6 +44,7 @@ public class Client {
     private int clientPort;
     private boolean isStart = false;
     private Socket werewolfSocket;
+    private int idKpu;
     
     
     
@@ -170,6 +171,7 @@ public class Client {
                                     voteWerewolf();
                                 break;
                             case "kpu_selected":
+                                idKpu = serverJSON.getInt("kpu_id");
                                 sendStatusOK(werewolfSocket);
                                 break;
                             case "change_phase":
@@ -300,8 +302,8 @@ public class Client {
         msg.put("method", "vote_civilian");
         msg.put("player_id", pemainDipilihId);
         byte[] buf = msg.toString().getBytes();
-        InetAddress address = InetAddress.getByName(listPlayers.getPlayer(pemainDipilihId).getAddress());
-        int port = listPlayers.getPlayer(pemainDipilihId).getPort();
+        InetAddress address = InetAddress.getByName(listPlayers.getPlayer(idKpu).getAddress());
+        int port = listPlayers.getPlayer(idKpu).getPort();
         DatagramPacket sendPacket = new DatagramPacket(buf, buf.length, address, port);
         System.out.println("client send : " + new String(sendPacket.getData()));
         socketUDP.send(sendPacket);
@@ -317,8 +319,8 @@ public class Client {
             msg.put("method", "vote_werewolf");
             msg.put("player_id", pemainDipilihId);
             byte[] buf = msg.toString().getBytes();
-            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(pemainDipilihId).getAddress());
-            int port = listPlayers.getPlayer(pemainDipilihId).getPort();
+            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(idKpu).getAddress());
+            int port = listPlayers.getPlayer(idKpu).getPort();
             DatagramPacket sendPacket = new DatagramPacket(buf, buf.length, address, port);
             System.out.println("client send : " + new String(sendPacket.getData()));
             socketUDP.send(sendPacket);

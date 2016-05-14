@@ -180,7 +180,7 @@ public class Acceptor implements Runnable {
                         if(votedByWerewolf.containsKey(valueVoted)){
                             votedByWerewolf.put(valueVoted,votedByWerewolf.get(valueVoted)+1);
                         } else {
-                            votedByWerewolf.put(valueVoted, 0);
+                            votedByWerewolf.put(valueVoted, 1);
                         }
                         countReceiveFromWerewolf++;
                         if(countReceiveFromWerewolf == listPlayers.getWerewolfAlive()){
@@ -219,11 +219,10 @@ public class Acceptor implements Runnable {
                             };
                             thread.start();
                             
-                            HashSet<Integer> keyVotedByWerewolf = (HashSet<Integer>)votedByWerewolf.keySet();
-                            for(Integer i : keyVotedByWerewolf){
+                            for(Map.Entry<Integer, Integer> entry : votedByWerewolf.entrySet()){
                                 JSONArray temp = new JSONArray();
-                                temp.put(i);
-                                temp.put(votedByWerewolf.get(i));
+                                temp.put(entry.getKey());
+                                temp.put(entry.getValue());
                                 votedByClient.put(temp);
                             }
                             requestToServer.put("vote_result", votedByClient);
@@ -236,7 +235,7 @@ public class Acceptor implements Runnable {
                         if(votedForDay.containsKey(valueVoted)){
                             votedForDay.put(valueVoted,votedForDay.get(valueVoted)+1);
                         } else {
-                            votedForDay.put(valueVoted, 0);
+                            votedForDay.put(valueVoted, 1);
                         }
                         countReceiveForDay++;
                         if(countReceiveForDay == listPlayers.getPlayersAlive()){
@@ -277,11 +276,10 @@ public class Acceptor implements Runnable {
                             };
                             thread.start();
                             
-                            HashSet<Integer> keyVotedByClient = (HashSet<Integer>)votedForDay.keySet();
-                            for(Integer i : keyVotedByClient){
+                            for(Map.Entry<Integer, Integer> entry : votedForDay.entrySet()){
                                 JSONArray temp = new JSONArray();
-                                temp.put(i);
-                                temp.put(votedForDay.get(i));
+                                temp.put(entry.getKey());
+                                temp.put(entry.getValue());
                                 votedByClient.put(temp);
                             }
                             requestToServer.put("vote_result", votedByClient);
@@ -315,6 +313,7 @@ public class Acceptor implements Runnable {
                     }
                 }
             } else {
+                System.err.println("bukan kpu");
                 buf = new byte[1024];
                 receiveData = new DatagramPacket(buf, buf.length);
                 try {
@@ -483,9 +482,8 @@ public class Acceptor implements Runnable {
     }
     
     public int consensusPaxosForDay(Map<Integer, Integer> vote) {
-        HashSet<Integer> keyVotedByClient = (HashSet<Integer>)votedForDay.keySet();
-        for(Integer i : keyVotedByClient){
-            if(consensusPaxos(votedForDay.get(i))) return i;
+        for(Map.Entry<Integer, Integer> entry : vote.entrySet()){
+            if(consensusPaxos(entry.getValue())) return entry.getKey();
         }
         return -999;
     }
