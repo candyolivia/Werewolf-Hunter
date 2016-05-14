@@ -150,7 +150,7 @@ public class ServerThread extends Thread {
                                 out.println(jsonOut);
                                 System.out.println(jsonOut);
                             }
-                            else if (jsonIn.getString("description").equals("Kpu is selected")) {
+                            else if (jsonIn.getString("method").equals("accepted_proposal") && jsonIn.getString("description").equals("Kpu is selected")) {
                                 JSONObject jsonOut = new JSONObject();
                                 jsonOut.put("status","ok");
                                 jsonOut.put("description","get KPU");
@@ -163,9 +163,52 @@ public class ServerThread extends Thread {
                                 out.println(kpuJSON);
                                 System.out.println(kpuJSON);
 
+                            } 
+                            else if (jsonIn.get("method").equals("vote_result_civilian")) {
+                                if (jsonIn.get("vote_status").equals(1)) {
+                                    int playerTerbunuh = jsonIn.getInt("player_killed");
+                                    listPlayer.getPlayer(playerTerbunuh).setAlive(0);
+                                    for (int i = 0; i < listPlayer.getPlayers().size();i++) {
+                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
+                                            PrintWriter outSock =
+                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                            outSock.println(changePhase("night",listPlayer.day));
+                                        }
+                                    }
+                                } else if (jsonIn.get("vote_status").equals(-1)) {
+                                    for (int i = 0; i < listPlayer.getPlayers().size();i++) {
+                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
+                                            PrintWriter outSock =
+                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                            outSock.println(voteNow("day"));
+                                        }
+                                    }
+                                }
                             }
-
                             
+                            else if (jsonIn.get("method").equals("vote_result_werewolf")) {
+                                int playerTerbunuh = jsonIn.getInt("player_killed");
+                                listPlayer.getPlayer(playerTerbunuh).setAlive(0);
+                                
+                                if (jsonIn.get("vote_status").equals(1)) {
+                                    for (int i = 0; i < listPlayer.getPlayers().size();i++) {
+                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
+                                            PrintWriter outSock =
+                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                            listPlayer.day += 1;
+                                            outSock.println(changePhase("day",listPlayer.day));
+                                        }
+                                    }
+                                } else if (jsonIn.get("vote_status").equals(-1)) {
+                                    for (int i = 0; i < listPlayer.getPlayers().size();i++) {
+                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
+                                            PrintWriter outSock =
+                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                            outSock.println(voteNow("night"));
+                                        }
+                                    }
+                                }
+                            }
                         }
                         else {
                             if (jsonIn.getString("status").equals("ok")&&(jsonIn.getString("description").equals("ready to vote"))) {
