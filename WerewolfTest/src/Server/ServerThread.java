@@ -59,7 +59,7 @@ public class ServerThread extends Thread {
                             out.println(jsonOut);
                         } else if (!listPlayer.checkPlayerExisted(jsonIn.getString("username"))){
                             player = listPlayer.addPlayer(playerId, jsonIn.getString("username"),jsonIn.getString("udp_address"),
-                                    jsonIn.getInt("udp_port"));
+                                    jsonIn.getInt("udp_port"), clientSocket);
                             JSONObject jsonOut = new JSONObject();
                             jsonOut.put("status","ok");
                             jsonOut.put("player_id", playerId);

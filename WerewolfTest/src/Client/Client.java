@@ -214,7 +214,7 @@ public class Client {
 //        hostName = inputHostname;
 //        portNumber = Integer.parseInt(inputPortNumber);
        hostName = "127.0.0.1";
-       portNumber = 1234;
+       portNumber = 8005;
         valid = false;
     }
     
@@ -244,7 +244,7 @@ public class Client {
                 String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
                 String address = response.getJSONArray("clients").getJSONObject(i).getString("address");
                 int port = response.getJSONArray("clients").getJSONObject(i).getInt("port");
-                listPlayers.addPlayer(playerId, username, address, port);
+                listPlayers.addPlayer(playerId, username, address, port, werewolfSocket);
                 usernames.add(username);
             }
             

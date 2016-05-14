@@ -5,6 +5,8 @@
  */
 package Server;
 
+import java.net.Socket;
+
 /**
  *
  * @author Candy
@@ -17,15 +19,17 @@ public class Player {
     private int port;
     private int alive = 1;
     private boolean ready = false;
+    private Socket socket;
     
 
     //CONSTRUCTOR
-    public Player(int _id, String _username, String _role, String _address, int _port) {
+    public Player(int _id, String _username, String _role, String _address, int _port, Socket sock) {
         id = _id;
         username = _username;
         role = _role;
         address = _address;
         port = _port;
+        socket = sock;
     }
 
     /**
@@ -126,4 +130,12 @@ public class Player {
         this.ready = ready;
     }
 
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+    
 }

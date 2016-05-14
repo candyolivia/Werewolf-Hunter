@@ -5,6 +5,7 @@
  */
 package Server;
 
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -20,7 +21,6 @@ import org.json.JSONObject;
  */
 public class ListPlayer {
     private static ArrayList<Player> players = new ArrayList<Player>();
-    
     private ArrayList werewolfId = randomRole();
     
     public ArrayList getPlayers() {
@@ -53,7 +53,7 @@ public class ListPlayer {
         this.players = players;
     }
     
-    public Player addPlayer(int id, String username, String address, int port){
+    public Player addPlayer(int id, String username, String address, int port, Socket sock){
         String role;
         if (werewolfId.contains(id)){
             role = "werewolf";
@@ -61,7 +61,7 @@ public class ListPlayer {
         else
             role = "civilian";
         
-        Player newPlayer = new Player(id, username, role, address, port);
+        Player newPlayer = new Player(id, username, role, address, port, sock);
         players.add(newPlayer);
         
         return newPlayer;
