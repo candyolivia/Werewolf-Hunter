@@ -164,13 +164,13 @@ public class Client {
                                 //System.out.println("masuk sini3");
                                 break;
                             case "vote_now":
-                                if(serverJSON.getString("time").equals("day"))
+                                if(serverJSON.getString("phase").equals("day"))
                                     voteCivilian();
                                 else
                                     voteWerewolf();
                                 break;
                             case "kpu_selected":
-                                
+                                sendStatusOK(werewolfSocket);
                                 break;
                             case "change_phase":
                                 if(serverJSON.getString("time").equals("day"))
@@ -196,6 +196,14 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }      
         
+    }
+    
+    public void sendStatusOK(Socket sock) throws JSONException, IOException {
+        PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+        JSONObject json = new JSONObject();
+        json.put("status", "ok");
+        json.put("description", "ready to vote");
+        out.println(json);
     }
     
     public void initializeClient(){

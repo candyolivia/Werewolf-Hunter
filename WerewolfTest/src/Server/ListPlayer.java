@@ -20,6 +20,7 @@ import org.json.JSONObject;
  * @author Candy
  */
 public class ListPlayer {
+    private static int statusPlayer = 0;
     private static ArrayList<Player> players = new ArrayList<Player>();
     private ArrayList werewolfId = randomRole();
     
@@ -165,4 +166,14 @@ public class ListPlayer {
         }
         return count;
     }
+
+    public int getStatusPlayer() {
+        return statusPlayer;
+    }
+
+    public void setStatusPlayer(int statusPlayer) {
+        ListPlayer.statusPlayer = statusPlayer;
+    }
+    
+    
 }

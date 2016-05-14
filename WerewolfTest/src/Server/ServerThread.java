@@ -90,86 +90,106 @@ public class ServerThread extends Thread {
                     try {
                         System.out.println(username + " : " + inputLine);
                         JSONObject jsonIn = new JSONObject(inputLine);
-                        if (jsonIn.getString("method").equals("leave")) {
-                            listPlayer.removePlayer(username);
-                            JSONObject jsonOut = new JSONObject();
-                            jsonOut.put("status","ok");
-                            out.println(jsonOut);
-                            System.out.println(jsonOut);
-                            //System.exit(0);
-                        }
-                        else if (jsonIn.getString("method").equals("ready")) {
-                            player.setReady(true);
-                            JSONObject jsonOut = new JSONObject();
-                            jsonOut.put("status","ok");
-                            jsonOut.put("description", "waiting for other player to start");
-                            out.println(jsonOut);
-                            System.out.println(jsonOut);
-                            
-                            Thread thread = new Thread(){
-                                public void run(){
-                                    while (!checkAllReady()){
-                                        try {
-                                            //System.out.println("not ready");
-                                            sleep(1000);
-                                        } catch (InterruptedException ex) {
-                                            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-                                        }
-                                    }
-                                    // send start command
-                                    //listPlayer.randomRole();
-                                    JSONObject start = startMessage(player);
-                                    out.println(start);
-                                    System.out.println(start);
-                                }
-                            };
-
-                            thread.start();
-                            
-                        }
-                        else if (jsonIn.getString("method").equals("client_address")) {
-                            JSONObject jsonOut = new JSONObject();
-                            jsonOut.put("status", "ok");
-                            jsonOut.put("description", "list of clients retrieved");
-                            JSONArray clients = new JSONArray();
-                            for(int i=0; i < listPlayer.getSize(); i++){
-                                JSONObject player = new JSONObject();
-                                player.put("player_id", listPlayer.getPlayer(i).getId());
-                                player.put("is_alive", listPlayer.getPlayer(i).getAlive());
-                                player.put("address", listPlayer.getPlayer(i).getAddress());
-                                player.put("port", listPlayer.getPlayer(i).getPort());
-                                player.put("username", listPlayer.getPlayer(i).getUsername());
-                                if (listPlayer.getPlayer(i).getAlive() == 0)
-                                    player.put("role", listPlayer.getPlayer(i).getRole());
-
-                                clients.put(player);
+                        if (jsonIn.has("method")) {
+                            if (jsonIn.getString("method").equals("leave")) {
+                                listPlayer.removePlayer(username);
+                                JSONObject jsonOut = new JSONObject();
+                                jsonOut.put("status","ok");
+                                out.println(jsonOut);
+                                System.out.println(jsonOut);
+                                //System.exit(0);
                             }
-                            
-                            jsonOut.put("clients",clients);
-                            out.println(jsonOut);
-                            System.out.println(jsonOut);
-                        }
-                        else if (jsonIn.getString("description").equals("Kpu is selected")) {
-                            JSONObject jsonOut = new JSONObject();
-                            jsonOut.put("status","ok");
-                            jsonOut.put("description","get KPU");
-                            out.println(jsonOut);
-                            System.out.println(jsonOut);
-                            
-                            JSONObject kpuJSON = new JSONObject();
-                            kpuJSON.put("method","kpu_selected");
-                            kpuJSON.put("kpu_id", jsonIn.getInt("kpu_id"));
-                            out.println(kpuJSON);
-                            System.out.println(kpuJSON);
+                            else if (jsonIn.getString("method").equals("ready")) {
+                                player.setReady(true);
+                                JSONObject jsonOut = new JSONObject();
+                                jsonOut.put("status","ok");
+                                jsonOut.put("description", "waiting for other player to start");
+                                out.println(jsonOut);
+                                System.out.println(jsonOut);
+
+                                Thread thread = new Thread(){
+                                    public void run(){
+                                        while (!checkAllReady()){
+                                            try {
+                                                //System.out.println("not ready");
+                                                sleep(1000);
+                                            } catch (InterruptedException ex) {
+                                                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                        }
+                                        // send start command
+                                        //listPlayer.randomRole();
+                                        JSONObject start = startMessage(player);
+                                        out.println(start);
+                                        System.out.println(start);
+                                    }
+                                };
+
+                                thread.start();
+
+                            }
+                            else if (jsonIn.getString("method").equals("client_address")) {
+                                JSONObject jsonOut = new JSONObject();
+                                jsonOut.put("status", "ok");
+                                jsonOut.put("description", "list of clients retrieved");
+                                JSONArray clients = new JSONArray();
+                                for(int i=0; i < listPlayer.getSize(); i++){
+                                    JSONObject player = new JSONObject();
+                                    player.put("player_id", listPlayer.getPlayer(i).getId());
+                                    player.put("is_alive", listPlayer.getPlayer(i).getAlive());
+                                    player.put("address", listPlayer.getPlayer(i).getAddress());
+                                    player.put("port", listPlayer.getPlayer(i).getPort());
+                                    player.put("username", listPlayer.getPlayer(i).getUsername());
+                                    if (listPlayer.getPlayer(i).getAlive() == 0)
+                                        player.put("role", listPlayer.getPlayer(i).getRole());
+
+                                    clients.put(player);
+                                }
+
+                                jsonOut.put("clients",clients);
+                                out.println(jsonOut);
+                                System.out.println(jsonOut);
+                            }
+                            else if (jsonIn.getString("description").equals("Kpu is selected")) {
+                                JSONObject jsonOut = new JSONObject();
+                                jsonOut.put("status","ok");
+                                jsonOut.put("description","get KPU");
+                                out.println(jsonOut);
+                                System.out.println(jsonOut);
+
+                                JSONObject kpuJSON = new JSONObject();
+                                kpuJSON.put("method","kpu_selected");
+                                kpuJSON.put("kpu_id", jsonIn.getInt("kpu_id"));
+                                out.println(kpuJSON);
+                                System.out.println(kpuJSON);
+
+                            }
+
                             
                         }
                         else {
-                            JSONObject jsonOut = new JSONObject();
-                            jsonOut.put("status","error");
-                            jsonOut.put("description","wrong request");
-                            out.println(jsonOut);
-                            System.out.println(jsonOut);
+                            if (jsonIn.getString("status").equals("ok")&&(jsonIn.getString("description").equals("ready to vote"))) {
+                                listPlayer.setStatusPlayer(listPlayer.getStatusPlayer()+1);
+                                while (listPlayer.getStatusPlayer() < listPlayer.getPlayersAlive()) {
+                                    try {
+                                        sleep(1000);
+                                    } catch (InterruptedException ex) {
+                                        Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+
+                                out.println(voteNow("day"));
+                            }
+                            else {
+                                JSONObject jsonOut = new JSONObject();
+                                jsonOut.put("status","error");
+                                jsonOut.put("description","wrong request");
+                                out.println(jsonOut);
+                                System.out.println(jsonOut);
+                            }
                         }
+                        
+                        
                     } catch (JSONException ex) {
                         Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
