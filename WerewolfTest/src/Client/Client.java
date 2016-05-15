@@ -207,7 +207,7 @@ public class Client {
                                     //update status
                                     game.updateStatus(getAlive(response));
                                     //update list player
-                                    game.updatePlayerList(getUsernames(response), getActivePlayers(response));
+                                    game.updatePlayerList(listPlayers.getUsernamePlayers(), getActivePlayers(response));
                                     acceptor.setIsConsensusTime(true);
                                 } else {
                                     isDay = false;

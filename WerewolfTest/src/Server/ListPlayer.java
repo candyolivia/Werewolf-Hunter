@@ -32,6 +32,14 @@ public class ListPlayer {
         return players;
     }
     
+    public ArrayList<String> getUsernamePlayers(){
+        ArrayList<String> username = new ArrayList<String>();
+        for(int i = 0; i < players.size(); ++i){
+            username.add(getPlayer(i).getUsername());
+        }
+        return username;
+    }
+    
     public int getPlayerId(String address, int port){
         //System.out.println("ini address : " + address);
         //System.out.println("ini port : " + port);
