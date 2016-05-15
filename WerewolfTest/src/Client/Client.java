@@ -201,11 +201,15 @@ public class Client {
                                     acceptor.setIsConsensusTime(true);
                                 game.updatePhase(serverJSON.getString("time"));
                                 game.updateRound(serverJSON.getInt("days"));
-                                //request list player aktif
-                                //update status
-                                //update list player
-                                //toggle bisa vote apa engga berdasrkan role
                                 
+                                //request list player aktif
+                                out.println(requestClients());
+                                response = getResponse(in);
+                                
+                                //update status
+                                game.updateStatus(getAlive(response));
+                                //update list player
+                                game.updatePlayerList(getUsernames(response), getActivePlayers(response));
                                 
                                 break;
                             case "game_over":
@@ -317,6 +321,25 @@ public class Client {
         
             return null;
         }
+    }
+    
+    private int getAlive(JSONObject response){
+        int alive = 0;
+        try {
+            JSONArray client = response.getJSONArray("clients");
+            
+            for (int i = 0; i < client.length(); i++) {
+                String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
+                if (username.equals(inputUsername)){
+                    alive = response.getJSONArray("clients").getJSONObject(i).getInt("is_alive");
+                }
+            }
+            
+        } catch (JSONException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        return alive;
     }
     
     private String getFriend(JSONObject response){
