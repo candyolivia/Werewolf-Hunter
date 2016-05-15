@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
@@ -21,18 +22,20 @@ import org.json.JSONObject;
  *
  * @author Candy
  */
-public class ServerThread extends Thread {
+public class ServerThread implements Runnable {
+    private static AtomicInteger statusPlayer;
     private Socket clientSocket = null;
     private int playerId;
-    private ListPlayer listPlayer = new ListPlayer();
+    private ListPlayer listPlayer;
     private Player player = null;
     private boolean playing = false;
+    private int pemilihanDay = 0;
     
     private String username;
 
-    public ServerThread(Socket socket) {
-        super("ServerThread");
+    public ServerThread(Socket socket, ListPlayer _listPlayer) {
         this.clientSocket = socket;
+        listPlayer = _listPlayer;
     }
     
     public void run() {
@@ -140,7 +143,7 @@ public class ServerThread extends Thread {
                                     player.put("address", listPlayer.getPlayer(i).getAddress());
                                     player.put("port", listPlayer.getPlayer(i).getPort());
                                     player.put("username", listPlayer.getPlayer(i).getUsername());
-                                    if (listPlayer.getPlayer(i).getAlive() == 0)
+                                    if (listPlayer.getPlayer(i).getRole().equals("werewolf"))
                                         player.put("role", listPlayer.getPlayer(i).getRole());
 
                                     clients.put(player);
@@ -168,44 +171,58 @@ public class ServerThread extends Thread {
                                 if (jsonIn.get("vote_status").equals(1)) {
                                     int playerTerbunuh = jsonIn.getInt("player_killed");
                                     listPlayer.getPlayer(playerTerbunuh).setAlive(0);
+                                    boolean gameberakhir = listPlayer.isGameOver();
                                     for (int i = 0; i < listPlayer.getPlayers().size();i++) {
-                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
-                                            PrintWriter outSock =
-                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                        PrintWriter outSock =
+                                            new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                        if(!gameberakhir){
                                             outSock.println(changePhase("night",listPlayer.day));
+                                            listPlayer.isDay = false;
+                                        } else {
+                                            if(listPlayer.isWerewolfWinner) outSock.println(gameOver("werewolf"));
+                                            else outSock.println(gameOver("civilian"));
                                         }
                                     }
                                 } else if (jsonIn.get("vote_status").equals(-1)) {
+                                    pemilihanDay++;
                                     for (int i = 0; i < listPlayer.getPlayers().size();i++) {
-                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
-                                            PrintWriter outSock =
-                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                        PrintWriter outSock =
+                                            new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                        if(pemilihanDay < 2) {
+                                            System.err.println("jancuk11");
                                             outSock.println(voteNow("day"));
+                                        } else {
+                                            System.err.println("jancuk12");
+                                            outSock.println(changePhase("night",listPlayer.day));
+                                            listPlayer.isDay = false;
                                         }
                                     }
+                                    if(pemilihanDay == 2) pemilihanDay = 0;
                                 }
                             }
                             
                             else if (jsonIn.get("method").equals("vote_result_werewolf")) {
-                                int playerTerbunuh = jsonIn.getInt("player_killed");
-                                listPlayer.getPlayer(playerTerbunuh).setAlive(0);
-                                
                                 if (jsonIn.get("vote_status").equals(1)) {
+                                    int playerTerbunuh = jsonIn.getInt("player_killed");
+                                    listPlayer.getPlayer(playerTerbunuh).setAlive(0);
+                                    boolean gameberakhir = listPlayer.isGameOver();
+                                    listPlayer.day += 1;
                                     for (int i = 0; i < listPlayer.getPlayers().size();i++) {
-                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
-                                            PrintWriter outSock =
-                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
-                                            listPlayer.day += 1;
+                                        PrintWriter outSock =
+                                            new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                        if(!gameberakhir){
                                             outSock.println(changePhase("day",listPlayer.day));
+                                            listPlayer.isDay = true;
+                                        } else {
+                                            if(listPlayer.isWerewolfWinner) outSock.println(gameOver("werewolf"));
+                                            else outSock.println(gameOver("civilian"));
                                         }
                                     }
                                 } else if (jsonIn.get("vote_status").equals(-1)) {
                                     for (int i = 0; i < listPlayer.getPlayers().size();i++) {
-                                        if (listPlayer.getPlayer(i).getAlive() == 1) {
-                                            PrintWriter outSock =
-                                                new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
-                                            outSock.println(voteNow("night"));
-                                        }
+                                        PrintWriter outSock =
+                                            new PrintWriter(listPlayer.getPlayer(i).getSocket().getOutputStream(), true);
+                                        outSock.println(voteNow("night"));
                                     }
                                 }
                             }
@@ -213,15 +230,17 @@ public class ServerThread extends Thread {
                         else {
                             if (jsonIn.getString("status").equals("ok")&&(jsonIn.getString("description").equals("ready to vote"))) {
                                 listPlayer.setStatusPlayer(listPlayer.getStatusPlayer()+1);
+                                System.out.println("jumlah status player : " + listPlayer.getStatusPlayer());
                                 while (listPlayer.getStatusPlayer() < listPlayer.getPlayersAlive()) {
                                     try {
-                                        sleep(1000);
+                                        Thread.sleep(1000);
                                     } catch (InterruptedException ex) {
                                         Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                 }
-
-                                out.println(voteNow("day"));
+                                if(listPlayer.isDay) out.println(voteNow("day"));
+                                else out.println(voteNow("night"));
+                                //1listPlayer.setStatusPlayer(0);
                             }
                             else {
                                 JSONObject jsonOut = new JSONObject();
@@ -307,6 +326,7 @@ public class ServerThread extends Thread {
     
     private JSONObject changePhase(String time, int days){
         try {
+            listPlayer.setStatusPlayer(0);
             JSONObject msg = new JSONObject();
             msg.put("method", "change_phase");
             msg.put("time", time);
@@ -325,6 +345,7 @@ public class ServerThread extends Thread {
             JSONObject msg = new JSONObject();
             msg.put("method", "vote_now");
             msg.put("phase", phase);
+            System.out.println(msg);
             return msg;
         } catch (JSONException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);

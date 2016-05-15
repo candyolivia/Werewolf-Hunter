@@ -43,6 +43,7 @@ public class Server {
         int portNumber = Integer.parseInt(args[0]);
         
         int playerId = 0;
+        Thread userReceiver;
         ListPlayer listPlayer = new ListPlayer();
         int numPlayers = 6;
         
@@ -51,29 +52,13 @@ public class Server {
          
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (listening) { 
-                ServerThread newServer = new ServerThread(serverSocket.accept());
+                ServerThread newServer = new ServerThread(serverSocket.accept(), listPlayer);
+                userReceiver = new Thread(newServer);
                 if (!listPlayer.isEmpty()){
                     playerId = listPlayer.getLastId() + 1;
                 }
                 newServer.setPlayerId(playerId);
-                //newServer.setListPlayer(listPlayer);
-                /*if (listPlayer.getSize() > numPlayers) {
-                    newServer.setPlaying(true);
-                } else {
-                    newServer.setPlaying(false);
-                }*/
-
-                newServer.start();
-                //listPlayer = newServer.getListPlayer();
-                /*while (!checkAllReady(listPlayer)){
-                    System.out.println("notready");
-                    listPlayer.print();
-                }
-                System.out.println("ready");*/
-                //listPlayer.print();
-                //System.out.println("player: " + listPlayer.getSize() + " " + playerId);
-                // TODO : start game
-             
+                userReceiver.start();
             }
         } catch (IOException e) {
             System.err.println("Could not listen on port " + portNumber);

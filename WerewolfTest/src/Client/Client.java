@@ -101,7 +101,7 @@ public class Client {
                     JSONObject serverJSON = new JSONObject(fromServer);
                     
                     if (fromServer != null) {
-                        System.out.println("Server: " + serverJSON);
+                        System.out.println("Server:1 " + serverJSON);
                         if (serverJSON.get("status").equals("ok")){
                             playerID = serverJSON.getInt("player_id");
                             valid = true;
@@ -138,7 +138,7 @@ public class Client {
                 JSONObject response = null;
 
                 if (fromServer != null) {
-                    System.out.println("Server: " + serverJSON);
+                    System.out.println("Server:2 " + serverJSON);
                     if (serverJSON.has("method")&&!isStart){
                         JSONObject msg = new JSONObject();
                         switch(serverJSON.getString("method")){
@@ -175,10 +175,18 @@ public class Client {
                                 sendStatusOK(werewolfSocket);
                                 break;
                             case "change_phase":
-                                if(serverJSON.getString("time").equals("day"))
+                                if(serverJSON.getString("time").equals("day")){
+                                    isDay = true;
+                                    updateListPlayers(werewolfSocket);
                                     acceptor.setIsConsensusTime(true);
+                                } else {
+                                    isDay = false;
+                                    updateListPlayers(werewolfSocket);
+                                    sendStatusOK(werewolfSocket);
+                                }
                                 break;
                             case "game_over":
+                                break;
                         }
                     } 
                 }
@@ -206,6 +214,17 @@ public class Client {
         json.put("status", "ok");
         json.put("description", "ready to vote");
         out.println(json);
+    }
+    
+    public void updateListPlayers(Socket sock) throws IOException, JSONException{
+        PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+        JSONObject json = new JSONObject();
+        json.put("method", "client_address");
+        out.println(json);
+        String fromServer = in.readLine();
+        JSONObject serverJSON = new JSONObject(fromServer);
+        getActivePlayers(serverJSON);
     }
     
     public void initializeClient(){
@@ -238,7 +257,7 @@ public class Client {
             }
 
             serverJSON = new JSONObject(fromServer);
-            System.out.println("Server: " + serverJSON);
+            System.out.println("Server:3 " + serverJSON);
             
         return serverJSON;
     }
@@ -254,7 +273,10 @@ public class Client {
                 String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
                 String address = response.getJSONArray("clients").getJSONObject(i).getString("address");
                 int port = response.getJSONArray("clients").getJSONObject(i).getInt("port");
-                listPlayers.addPlayer(playerId, username, address, port, werewolfSocket);
+                if(response.getJSONArray("clients").getJSONObject(i).has("role") && response.getJSONArray("clients").getJSONObject(i).getString("role").equals("werewolf"))
+                    listPlayers.addPlayer(playerId, username, address, port, werewolfSocket, true);
+                else
+                    listPlayers.addPlayer(playerId, username, address, port, werewolfSocket, false);
                 usernames.add(username);
             }
             
@@ -275,10 +297,14 @@ public class Client {
                
                 String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
                 
-                if (response.getJSONArray("clients").getJSONObject(i).getInt("is_alive") == 1)
+                if (response.getJSONArray("clients").getJSONObject(i).getInt("is_alive") == 1){
                     players.add(username);
-                else
+                    //System.out.println(username + " masih hidup, role di listplayer client : " + listPlayers.getPlayer(i).getRole());
+                }
+                else {
                     listPlayers.getPlayer(response.getJSONArray("clients").getJSONObject(i).getInt("player_id")).setAlive(0);
+                    //System.out.println(username + " masih mati, role di listplayer client : " + listPlayers.getPlayer(i).getRole());
+                }
             }
             
             return players;
@@ -294,26 +320,29 @@ public class Client {
     }
     
     private void voteCivilian() throws JSONException, UnknownHostException, IOException{
-        Scanner reader = new Scanner(System.in);
-        System.out.println("masukkan pemain yang ingin di vote : ");
-        String pemainDipilih = reader.next();
-        int pemainDipilihId = listPlayers.getPlayerId(pemainDipilih);
-        JSONObject msg = new JSONObject();
-        msg.put("method", "vote_civilian");
-        msg.put("player_id", pemainDipilihId);
-        byte[] buf = msg.toString().getBytes();
-        InetAddress address = InetAddress.getByName(listPlayers.getPlayer(idKpu).getAddress());
-        int port = listPlayers.getPlayer(idKpu).getPort();
-        DatagramPacket sendPacket = new DatagramPacket(buf, buf.length, address, port);
-        System.out.println("client send : " + new String(sendPacket.getData()));
-        socketUDP.send(sendPacket);
-    }
-    
-    private void voteWerewolf() throws JSONException, UnknownHostException, IOException{
-        if(listPlayers.getPlayer(playerID).getRole().equals("werewolf")){
+        if(listPlayers.getPlayer(playerID).getAlive() == 1){
             Scanner reader = new Scanner(System.in);
             System.out.println("masukkan pemain yang ingin di vote : ");
             String pemainDipilih = reader.next();
+            int pemainDipilihId = listPlayers.getPlayerId(pemainDipilih);
+            JSONObject msg = new JSONObject();
+            msg.put("method", "vote_civilian");
+            msg.put("player_id", pemainDipilihId);
+            byte[] buf = msg.toString().getBytes();
+            InetAddress address = InetAddress.getByName(listPlayers.getPlayer(idKpu).getAddress());
+            int port = listPlayers.getPlayer(idKpu).getPort();
+            DatagramPacket sendPacket = new DatagramPacket(buf, buf.length, address, port);
+            System.out.println("client send : " + new String(sendPacket.getData()));
+            socketUDP.send(sendPacket);
+        }
+    }
+    
+    private void voteWerewolf() throws JSONException, UnknownHostException, IOException{
+        if(listPlayers.getPlayer(playerID).getRole().equals("werewolf") && listPlayers.getPlayer(playerID).getAlive() == 1){
+            Scanner reader = new Scanner(System.in);
+            System.out.println("masukkan pemain yang ingin di vote : ");
+            String pemainDipilih = reader.next();
+            System.out.println("pemain yang dipilih : " + pemainDipilih);
             int pemainDipilihId = listPlayers.getPlayerId(pemainDipilih);
             JSONObject msg = new JSONObject();
             msg.put("method", "vote_werewolf");

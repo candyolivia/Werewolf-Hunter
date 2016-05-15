@@ -87,6 +87,7 @@ public class Proposer implements Runnable{
         JSONObject prepareProposalJSON = new JSONObject();
         prepareProposalJSON.put("method","prepare_proposal");
         prepareProposalJSON.put("proposal_id", new JSONArray(new Object[]{proposalID, playerID}));
+        //System.out.println("ini isi list : " + listAcceptorReceive.toString());
         for (int i = 0; i < listPlayers.getSize(); i++) {
             int playerDestinationId = listPlayers.getPlayer(i).getId();
             if (playerDestinationId != playerID && !listAcceptorReceive.contains(playerDestinationId)) {
@@ -101,7 +102,7 @@ public class Proposer implements Runnable{
             InetAddress address = InetAddress.getByName(listPlayers.getPlayer(playerId).getAddress());
             int port = listPlayers.getPlayer(playerId).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
-             System.out.println("proposer send : " + new String(sendData.getData()));
+             //System.out.println("proposer send : " + new String(sendData.getData()));
             socket.send(sendData);
         } catch (IOException ex) {
             Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
@@ -221,7 +222,7 @@ public class Proposer implements Runnable{
             InetAddress address = InetAddress.getByName(listPlayers.getPlayer(playerId).getAddress());
             int port = listPlayers.getPlayer(playerId).getPort();
             sendData = new DatagramPacket(buf, buf.length, address,port);
-            System.out.println("proposer send : " + new String(sendData.getData()));
+            //System.out.println("proposer send : " + new String(sendData.getData()));
             socketAccept.send(sendData);
         } catch (IOException ex) {
             Logger.getLogger(Proposer.class.getName()).log(Level.SEVERE, null, ex);
@@ -237,7 +238,7 @@ public class Proposer implements Runnable{
             acceptedProposalJSON.put("proposal_id", new JSONArray(new Object[]{getProposalID(), playerID}));
             acceptedProposalJSON.put("kpu_id", playerID);
             
-            System.out.println("ini isi list : " + listAcceptorReceive.toString());
+            //System.out.println("ini isi list : " + listAcceptorReceive.toString());
             for (int i = 0; i < listPlayers.getSize(); i++) {
                 if (!listAcceptorReceive.contains(i)) {
                     sendAcceptedProposal(socketAccept, acceptedProposalJSON, i);

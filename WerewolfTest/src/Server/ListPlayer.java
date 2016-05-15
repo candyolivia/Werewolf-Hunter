@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
@@ -20,9 +21,11 @@ import org.json.JSONObject;
  * @author Candy
  */
 public class ListPlayer {
-    private static int statusPlayer = 0;
+    private static AtomicInteger statusPlayer = new AtomicInteger(0);
     private static ArrayList<Player> players = new ArrayList<Player>();
     private ArrayList werewolfId = randomRole();
+    public static boolean isDay = true;
+    public static boolean isWerewolfWinner = false;
     public static int day = 1;
     
     public ArrayList getPlayers() {
@@ -30,6 +33,8 @@ public class ListPlayer {
     }
     
     public int getPlayerId(String address, int port){
+        //System.out.println("ini address : " + address);
+        //System.out.println("ini port : " + port);
         for(int i = 0; i < players.size()-1; ++i){
             if(players.get(i).getAddress().equals(address) && players.get(i).getPort() == port){
                 return players.get(i).getId();
@@ -39,7 +44,7 @@ public class ListPlayer {
     }
     
     public int getPlayerId(String nameplayer){
-        for(int i = 0; i < players.size()-1; ++i){
+        for(int i = 0; i < players.size(); ++i){
             if(players.get(i).getUsername().equals(nameplayer)){
                 return players.get(i).getId();
             }
@@ -69,6 +74,20 @@ public class ListPlayer {
         return newPlayer;
     }
     
+    public Player addPlayer(int id, String username, String address, int port, Socket sock, boolean werewolf){
+        String role;
+        if (werewolf){
+            role = "werewolf";
+        }
+        else
+            role = "civilian";
+        
+        Player newPlayer = new Player(id, username, role, address, port, sock);
+        players.add(newPlayer);
+        
+        return newPlayer;
+    }
+    
     public void removePlayer(String username){
         Iterator<Player> it = players.iterator();
         while (it.hasNext()) {
@@ -83,7 +102,7 @@ public class ListPlayer {
         boolean check = false;
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getUsername().equals(username)){
-                //System.out.println(players.get(i).getUsername()+ " " +username);
+                System.out.println(players.get(i).getUsername()+ " " +username);
                 check = true;
                 break;
             }
@@ -124,11 +143,11 @@ public class ListPlayer {
     
     public ArrayList<Integer> randomRole(){
         ArrayList<Integer> werewolfs = new ArrayList<Integer>();
-        int random1 = randomNum(0,5);
+        int random1 = randomNum(0,3);
         werewolfs.add(random1);
-        int random2 = randomNum(0,5);
+        int random2 = randomNum(0,3);
         while (random1 == random2){
-            random2 = randomNum(0,5);
+            random2 = randomNum(0,3);
         }
         werewolfs.add(random2);
         
@@ -155,7 +174,11 @@ public class ListPlayer {
     public int getWerewolfAlive(){
         int count = 0;
         for(int i = 0; i < players.size(); ++i){
-            if(getPlayer(i).getRole().equals("werewolf") && getPlayer(i).getAlive() == 1) ++count;
+            String username = getPlayer(i).getUsername();
+            if(getPlayer(i).getRole().equals("werewolf") && getPlayer(i).getAlive() == 1) {
+                //System.out.println(username + " ini werewolf hidup");
+                ++count;
+            }
         }
         return count;
     }
@@ -168,13 +191,33 @@ public class ListPlayer {
         return count;
     }
 
-    public int getStatusPlayer() {
-        return statusPlayer;
+    public synchronized int getStatusPlayer() {
+        return statusPlayer.get();
     }
 
     public void setStatusPlayer(int statusPlayer) {
-        ListPlayer.statusPlayer = statusPlayer;
+        this.statusPlayer.set(statusPlayer);
     }
     
+    public void incStatusPlayer() {
+        this.statusPlayer.incrementAndGet();
+    }
     
+    public boolean isGameOver(){
+        int werewolfHidup = 0;
+        int civilianHidup = 0;
+        for(int i = 0; i < players.size(); ++i){
+            if(getPlayer(i).getRole().equals("werewolf") && getPlayer(i).getAlive() == 1) werewolfHidup++;
+            else if (getPlayer(i).getRole().equals("civilian") && getPlayer(i).getAlive() == 1)civilianHidup++;
+        }
+        if(werewolfHidup == civilianHidup ){
+            isWerewolfWinner = true;
+            return true;
+        }
+        if (werewolfHidup == 0) {
+            isWerewolfWinner = false;
+            return true;
+        }
+        return false;
+    }
 }
