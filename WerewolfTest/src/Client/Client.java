@@ -213,6 +213,8 @@ public class Client {
                                 
                                 break;
                             case "game_over":
+                                game.showGameOver(serverJSON.getString("winner"));
+                                break;
                         }
                     } 
                 }
