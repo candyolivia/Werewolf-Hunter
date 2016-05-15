@@ -143,18 +143,18 @@ public class ListPlayer {
     
     public ArrayList<Integer> randomRole(){
         ArrayList<Integer> werewolfs = new ArrayList<Integer>();
-        int random1 = randomNum(0,3);
+        int random1 = randomNum(0,5);
         werewolfs.add(random1);
-        int random2 = randomNum(0,3);
+        int random2 = randomNum(0,5);
         while (random1 == random2){
-            random2 = randomNum(0,3);
+            random2 = randomNum(0,5);
         }
         werewolfs.add(random2);
         
         return werewolfs;
     }
     
-    private int randomNum(int min, int max){
+    private static int randomNum(int min, int max){
         Random rand = new Random();
         int randomNum = rand.nextInt((max - min) + 1) + min;
         return randomNum;

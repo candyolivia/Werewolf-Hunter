@@ -27,6 +27,12 @@ public class GameView extends javax.swing.JFrame {
     private PrintWriter out;
     private BufferedReader in;
     private boolean isReadyButtonClicked = false;
+    private String role;
+    private boolean isDay;
+    private boolean isAlive;
+    private boolean voteNow;
+    private String username;
+    private String friend;
     
     public GameView() {
         initComponents();
@@ -42,7 +48,9 @@ public class GameView extends javax.swing.JFrame {
         statusLabel.setVisible(false);
         usernameLabel.setVisible(false);
         activePlayers.setVisible(false);
-        //this.revalidate();
+        gameOverLabel.setVisible(false);
+        winnerLabel.setVisible(false);
+        this.revalidate();
         
     }
 
@@ -69,6 +77,8 @@ public class GameView extends javax.swing.JFrame {
         phaseLabel = new javax.swing.JLabel();
         activePlayers = new javax.swing.JComboBox<>();
         statusLabel = new javax.swing.JLabel();
+        gameOverLabel = new javax.swing.JLabel();
+        winnerLabel = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -86,7 +96,9 @@ public class GameView extends javax.swing.JFrame {
         setBackground(new java.awt.Color(153, 204, 255));
         setMaximumSize(new java.awt.Dimension(1366, 768));
 
+        readyPane.setForeground(new java.awt.Color(255, 153, 51));
         readyPane.setPreferredSize(new java.awt.Dimension(600, 480));
+        readyPane.setLayout(null);
 
         readyButton.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
         readyButton.setForeground(new java.awt.Color(255, 102, 102));
@@ -97,6 +109,8 @@ public class GameView extends javax.swing.JFrame {
                 readyButtonActionPerformed(evt);
             }
         });
+        readyPane.add(readyButton);
+        readyButton.setBounds(10, 11, 94, 51);
 
         leaveButton.setFont(new java.awt.Font("Frank", 0, 18)); // NOI18N
         leaveButton.setForeground(new java.awt.Color(102, 102, 102));
@@ -107,135 +121,91 @@ public class GameView extends javax.swing.JFrame {
                 leaveButtonActionPerformed(evt);
             }
         });
+        readyPane.add(leaveButton);
+        leaveButton.setBounds(532, 371, 70, 70);
 
         voteButton.setFont(new java.awt.Font("Frank", 0, 20)); // NOI18N
         voteButton.setForeground(new java.awt.Color(0, 153, 153));
         voteButton.setText("Vote!");
         voteButton.setPreferredSize(new java.awt.Dimension(70, 70));
+        readyPane.add(voteButton);
+        voteButton.setBounds(456, 371, 70, 70);
 
         jScrollPane1.setPreferredSize(new java.awt.Dimension(146, 96));
 
         playerList.setEditable(false);
         playerList.setColumns(20);
-        playerList.setFont(new java.awt.Font("Frank", 0, 18)); // NOI18N
+        playerList.setFont(new java.awt.Font("Century Gothic", 0, 18)); // NOI18N
         playerList.setForeground(new java.awt.Color(102, 102, 102));
         playerList.setRows(5);
         playerList.setText("Waiting for other player to start...");
         playerList.setWrapStyleWord(true);
         jScrollPane1.setViewportView(playerList);
 
+        readyPane.add(jScrollPane1);
+        jScrollPane1.setBounds(456, 75, 146, 285);
+
         playersLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
         playersLabel.setForeground(new java.awt.Color(0, 153, 153));
         playersLabel.setText("Players");
+        readyPane.add(playersLabel);
+        playersLabel.setBounds(478, 26, 99, 43);
 
         roundLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
         roundLabel.setForeground(new java.awt.Color(0, 153, 153));
         roundLabel.setText("Round 1");
+        readyPane.add(roundLabel);
+        roundLabel.setBounds(199, 21, 96, 37);
 
         roleLabel.setFont(new java.awt.Font("Frank", 0, 28)); // NOI18N
         roleLabel.setForeground(new java.awt.Color(0, 153, 153));
         roleLabel.setText("You are a role");
+        readyPane.add(roleLabel);
+        roleLabel.setBounds(10, 412, 144, 29);
 
         usernameLabel.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
         usernameLabel.setForeground(new java.awt.Color(0, 153, 153));
         usernameLabel.setText("Username");
+        readyPane.add(usernameLabel);
+        usernameLabel.setBounds(10, 381, 83, 25);
 
         phaseLabel.setFont(new java.awt.Font("Frank", 0, 52)); // NOI18N
         phaseLabel.setForeground(new java.awt.Color(0, 102, 153));
         phaseLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         phaseLabel.setText("Day Time");
+        readyPane.add(phaseLabel);
+        phaseLabel.setBounds(149, 68, 200, 68);
 
         activePlayers.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
         activePlayers.setForeground(new java.awt.Color(102, 102, 102));
+        readyPane.add(activePlayers);
+        activePlayers.setBounds(166, 214, 168, 42);
 
         statusLabel.setFont(new java.awt.Font("Frank", 0, 28)); // NOI18N
         statusLabel.setForeground(new java.awt.Color(255, 102, 102));
         statusLabel.setText("Status: alive");
+        readyPane.add(statusLabel);
+        statusLabel.setBounds(294, 389, 128, 29);
 
-        javax.swing.GroupLayout readyPaneLayout = new javax.swing.GroupLayout(readyPane);
-        readyPane.setLayout(readyPaneLayout);
-        readyPaneLayout.setHorizontalGroup(
-            readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(readyPaneLayout.createSequentialGroup()
-                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(readyPaneLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readyPaneLayout.createSequentialGroup()
-                                .addGap(149, 149, 149)
-                                .addComponent(phaseLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(activePlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(15, 15, 15)))
-                        .addGap(73, 73, 73))
-                    .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(usernameLabel)
-                            .addComponent(roleLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(statusLabel)))
-                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addGap(34, 34, 34)
-                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
-                                .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, readyPaneLayout.createSequentialGroup()
-                        .addComponent(playersLabel)
-                        .addGap(35, 35, 35))))
-            .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(readyPaneLayout.createSequentialGroup()
-                    .addGap(199, 199, 199)
-                    .addComponent(roundLabel)
-                    .addContainerGap(317, Short.MAX_VALUE)))
-        );
-        readyPaneLayout.setVerticalGroup(
-            readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(readyPaneLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(phaseLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(78, 78, 78)
-                        .addComponent(activePlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(125, 125, 125)
-                        .addComponent(usernameLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(roleLabel))
-                    .addGroup(readyPaneLayout.createSequentialGroup()
-                        .addComponent(playersLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 285, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(statusLabel))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(readyPaneLayout.createSequentialGroup()
-                    .addGap(21, 21, 21)
-                    .addComponent(roundLabel)
-                    .addContainerGap(394, Short.MAX_VALUE)))
-        );
+        gameOverLabel.setFont(new java.awt.Font("Frank", 1, 80)); // NOI18N
+        gameOverLabel.setForeground(new java.awt.Color(204, 0, 0));
+        gameOverLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        gameOverLabel.setText("Game Over");
+        readyPane.add(gameOverLabel);
+        gameOverLabel.setBounds(30, 140, 420, 110);
 
-        readyButton.getAccessibleContext().setAccessibleParent(null);
+        winnerLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
+        winnerLabel.setForeground(new java.awt.Color(204, 0, 51));
+        winnerLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        winnerLabel.setText("Winner: cIVILIAN");
+        readyPane.add(winnerLabel);
+        winnerLabel.setBounds(90, 240, 300, 60);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(readyPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(readyPane, javax.swing.GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -261,6 +231,7 @@ public class GameView extends javax.swing.JFrame {
         catch (JSONException ex) {
                     Logger.getLogger(GameView.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                
         
                 readyButton.setVisible(false);
                 jScrollPane1.setVisible(true);
@@ -268,9 +239,10 @@ public class GameView extends javax.swing.JFrame {
                 playerList.setVisible(true);
                 playerList.setLineWrap(true);
                 leaveButton.setVisible(true);
-                voteButton.setVisible(true);
+                gameOverLabel.setVisible(false);
+                getVoteButton().setVisible(true);
                 leaveButton.setEnabled(false);
-                voteButton.setEnabled(false);
+                getVoteButton().setEnabled(false);
                 this.revalidate();
         
     }//GEN-LAST:event_readyButtonActionPerformed
@@ -297,23 +269,41 @@ public class GameView extends javax.swing.JFrame {
         }
         playerList.setText(players);
        
-        activePlayers.setModel(new DefaultComboBoxModel(active.toArray()));
-        activePlayers.setVisible(true);
+
+        if (role.equals("werewolf") && !isDay){
+            active.remove(friend);
+            active.remove(username);
+        }
         
+        getActivePlayers().setModel(new DefaultComboBoxModel(active.toArray()));
+        if ((role.equals("civilian") && !isDay) || !isAlive){
+            getActivePlayers().setVisible(false);
+        }
+        else {
+            getActivePlayers().setVisible(true);
+        }
+            
         //this.revalidate();
     }
     
-    public synchronized void startGame(String username, String role){
+    public synchronized void startGame(String username, String role, String friend){
+        this.username = username;
+        this.role = role;
+        if (role.equals("werewolf")){
+            this.friend = friend;
+        }
+        this.isDay = true;
+        this.isAlive = true;
         roleLabel.setText(role);
         usernameLabel.setText(username);
         statusLabel.setVisible(true);
         leaveButton.setEnabled(true);
-        voteButton.setEnabled(true);
+        getVoteButton().setEnabled(true);
         roundLabel.setVisible(true);
         phaseLabel.setVisible(true);
         roleLabel.setVisible(true);
         usernameLabel.setVisible(true);
-        //this.revalidate();
+        this.revalidate();
     }
     
     public synchronized void updateRound(int round){
@@ -322,18 +312,42 @@ public class GameView extends javax.swing.JFrame {
     
     public synchronized void updatePhase(String phase){
         roundLabel.setText(phase + " Time");
+        if (phase.equals("day")){
+            isDay = true;
+
+            voteButtonState(true);
+            
+        }
+        else{
+            isDay = false;
+            if (role.equals("civilian")){
+                voteButtonState(false);
+            }
+        }
+            
+    }
+    
+    
+    public synchronized void voteButtonState(boolean state){
+        if (isAlive && voteNow)
+            getVoteButton().setEnabled(state);
+        else
+            getVoteButton().setEnabled(false);
     }
 
     public synchronized void updateStatus(int status){
         if (status == 1)
             statusLabel.setText("Status: Alive");
-        else
+        else {
             statusLabel.setText("Status: Dead");
+            isAlive = false;
+        }
         
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> activePlayers;
+    private javax.swing.JLabel gameOverLabel;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton leaveButton;
@@ -347,6 +361,7 @@ public class GameView extends javax.swing.JFrame {
     private javax.swing.JLabel statusLabel;
     private javax.swing.JLabel usernameLabel;
     private javax.swing.JButton voteButton;
+    private javax.swing.JLabel winnerLabel;
     // End of variables declaration//GEN-END:variables
 
     /**
@@ -375,5 +390,42 @@ public class GameView extends javax.swing.JFrame {
      */
     public void setIn(BufferedReader in) {
         this.in = in;
+    }
+
+    /**
+     * @return the voteNow
+     */
+    public boolean isVoteNow() {
+        return voteNow;
+    }
+
+    /**
+     * @param voteNow the voteNow to set
+     */
+    public void setVoteNow(boolean voteNow) {
+        this.voteNow = voteNow;
+    }
+
+    /**
+     * @return the voteButton
+     */
+    public javax.swing.JButton getVoteButton() {
+        return voteButton;
+    }
+
+    /**
+     * @return the activePlayers
+     */
+    public javax.swing.JComboBox<String> getActivePlayers() {
+        return activePlayers;
+    }
+    
+    public void showGameOver(String winner){
+        gameOverLabel.setVisible(true);
+        winnerLabel.setText("Winner: " + winner);
+        winnerLabel.setVisible(true);
+        roundLabel.setVisible(false);
+        phaseLabel.setVisible(false);
+        voteButton.setVisible(false);
     }
 }

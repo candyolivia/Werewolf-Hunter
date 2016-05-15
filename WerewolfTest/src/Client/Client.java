@@ -6,6 +6,8 @@
 package Client;
 
 import Server.ListPlayer;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -45,6 +47,7 @@ public class Client {
     private boolean isStart = false;
     private Socket werewolfSocket;
     private int idKpu;
+    private String inputUsername ="";
     
     
     
@@ -62,7 +65,7 @@ public class Client {
             String fromServer;
             String fromUser;
             
-            String inputUsername = (String)JOptionPane.showInputDialog(
+            inputUsername = (String)JOptionPane.showInputDialog(
                                 new JFrame(),
                                 "Enter Username:\n",
                                 "Enter Username",
@@ -144,12 +147,11 @@ public class Client {
                         switch(serverJSON.getString("method")){
                             case "": break;
                             case "start":
-                                //olah status
-                                game.startGame(inputUsername, serverJSON.getString("role"));
-                                msg = new JSONObject();
-                                msg.put("method", "client_address");
-                                System.out.println("Client: " + msg);
-                                out.println(msg);
+                                if (serverJSON.has("friend"))
+                                    game.startGame(inputUsername, serverJSON.getString("role"), getFriend(serverJSON));
+                                else 
+                                    game.startGame(inputUsername, serverJSON.getString("role"), "");
+                                out.println(requestClients());
                                 response = getResponse(in);
                                 game.updatePlayerList(getUsernames(response), getActivePlayers(response));
                                 if (response.has("status")){
@@ -165,10 +167,29 @@ public class Client {
                                 //System.out.println("masuk sini3");
                                 break;
                             case "vote_now":
-                                if(serverJSON.getString("phase").equals("day"))
-                                    voteCivilian();
-                                else
-                                    voteWerewolf();
+                                game.setVoteNow(true);
+                                game.voteButtonState(true);
+                                //cek button vote
+                                game.getVoteButton().addActionListener(new ActionListener() {
+                                    public void actionPerformed(ActionEvent e){
+                                        try {
+                                            System.out.println("Vote button clicked");
+                                            if(serverJSON.getString("phase").equals("day"))
+                                                voteCivilian(game.getActivePlayers().getSelectedItem().toString());
+                                            else
+                                                voteWerewolf(game.getActivePlayers().getSelectedItem().toString());
+                                            game.getVoteButton().setEnabled(false);
+                                        } catch (JSONException ex) {
+                                            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                                        } catch (IOException ex) {
+                                            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                                        }
+                                    }
+                                });
+                                
+                                
+                                
+                                game.setVoteNow(false);
                                 break;
                             case "kpu_selected":
                                 idKpu = serverJSON.getInt("kpu_id");
@@ -178,6 +199,15 @@ public class Client {
                                 if(serverJSON.getString("time").equals("day")){
                                     isDay = true;
                                     updateListPlayers(werewolfSocket);
+                                    game.updatePhase(serverJSON.getString("time"));
+                                    game.updateRound(serverJSON.getInt("days"));
+                                    out.println(requestClients());
+                                    response = getResponse(in);
+
+                                    //update status
+                                    game.updateStatus(getAlive(response));
+                                    //update list player
+                                    game.updatePlayerList(getUsernames(response), getActivePlayers(response));
                                     acceptor.setIsConsensusTime(true);
                                 } else {
                                     isDay = false;
@@ -186,6 +216,7 @@ public class Client {
                                 }
                                 break;
                             case "game_over":
+                                game.showGameOver(serverJSON.getString("winner"));
                                 break;
                         }
                     } 
@@ -315,15 +346,57 @@ public class Client {
         }
     }
     
+    private int getAlive(JSONObject response){
+        int alive = 0;
+        try {
+            JSONArray client = response.getJSONArray("clients");
+            
+            for (int i = 0; i < client.length(); i++) {
+                String username = response.getJSONArray("clients").getJSONObject(i).getString("username");
+                if (username.equals(inputUsername)){
+                    alive = response.getJSONArray("clients").getJSONObject(i).getInt("is_alive");
+                }
+            }
+            
+        } catch (JSONException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        return alive;
+    }
+    
+    private String getFriend(JSONObject response){
+        try {
+            String friend ="";
+            for (int i = 0; i < 2; i++) {
+                
+                String username = response.getJSONArray("friend").getString(i);
+                if (!username.equals(inputUsername)){
+                    friend = username;
+                }
+            }
+            System.out.println("Friend: " +friend);
+            return friend;
+        } catch (JSONException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        
+            return null;
+        }
+    }
+    
+    public JSONObject requestClients() throws JSONException{
+        JSONObject msg = new JSONObject();
+        msg.put("method", "client_address");
+        System.out.println("Client: " + msg);
+        return msg;
+    }
+    
     public static void main(String[] args) throws IOException{
         Client c = new Client();
     }
     
-    private void voteCivilian() throws JSONException, UnknownHostException, IOException{
+    public void voteCivilian(String pemainDipilih) throws JSONException, UnknownHostException, IOException{
         if(listPlayers.getPlayer(playerID).getAlive() == 1){
-            Scanner reader = new Scanner(System.in);
-            System.out.println("masukkan pemain yang ingin di vote : ");
-            String pemainDipilih = reader.next();
             int pemainDipilihId = listPlayers.getPlayerId(pemainDipilih);
             JSONObject msg = new JSONObject();
             msg.put("method", "vote_civilian");
@@ -337,12 +410,8 @@ public class Client {
         }
     }
     
-    private void voteWerewolf() throws JSONException, UnknownHostException, IOException{
+    private void voteWerewolf(String pemainDipilih) throws JSONException, UnknownHostException, IOException{
         if(listPlayers.getPlayer(playerID).getRole().equals("werewolf") && listPlayers.getPlayer(playerID).getAlive() == 1){
-            Scanner reader = new Scanner(System.in);
-            System.out.println("masukkan pemain yang ingin di vote : ");
-            String pemainDipilih = reader.next();
-            System.out.println("pemain yang dipilih : " + pemainDipilih);
             int pemainDipilihId = listPlayers.getPlayerId(pemainDipilih);
             JSONObject msg = new JSONObject();
             msg.put("method", "vote_werewolf");
