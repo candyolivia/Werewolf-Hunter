@@ -22,7 +22,7 @@ import org.json.JSONObject;
 public class ListPlayer {
     private static int statusPlayer = 0;
     private static ArrayList<Player> players = new ArrayList<Player>();
-    private ArrayList werewolfId = randomRole();
+    private static final ArrayList<Integer> werewolfId = randomRole();
     public static int day = 1;
     
     public ArrayList getPlayers() {
@@ -122,8 +122,8 @@ public class ListPlayer {
         return players.isEmpty();
     }
     
-    public ArrayList<Integer> randomRole(){
-        ArrayList<Integer> werewolfs = new ArrayList<Integer>();
+    public static ArrayList<Integer> randomRole(){
+        ArrayList<Integer> werewolfs = new ArrayList<>();
         int random1 = randomNum(0,5);
         werewolfs.add(random1);
         int random2 = randomNum(0,5);
@@ -135,7 +135,7 @@ public class ListPlayer {
         return werewolfs;
     }
     
-    private int randomNum(int min, int max){
+    private static int randomNum(int min, int max){
         Random rand = new Random();
         int randomNum = rand.nextInt((max - min) + 1) + min;
         return randomNum;

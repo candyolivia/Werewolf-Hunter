@@ -27,6 +27,12 @@ public class GameView extends javax.swing.JFrame {
     private PrintWriter out;
     private BufferedReader in;
     private boolean isReadyButtonClicked = false;
+    private String role;
+    private boolean isDay;
+    private boolean isAlive;
+    private boolean voteNow;
+    private String username;
+    private String friend;
     
     public GameView() {
         initComponents();
@@ -42,7 +48,7 @@ public class GameView extends javax.swing.JFrame {
         statusLabel.setVisible(false);
         usernameLabel.setVisible(false);
         activePlayers.setVisible(false);
-        //this.revalidate();
+        this.revalidate();
         
     }
 
@@ -221,7 +227,7 @@ public class GameView extends javax.swing.JFrame {
                             .addComponent(leaveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(voteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusLabel))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(39, Short.MAX_VALUE))
             .addGroup(readyPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(readyPaneLayout.createSequentialGroup()
                     .addGap(21, 21, 21)
@@ -229,13 +235,11 @@ public class GameView extends javax.swing.JFrame {
                     .addContainerGap(394, Short.MAX_VALUE)))
         );
 
-        readyButton.getAccessibleContext().setAccessibleParent(null);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(readyPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(readyPane, javax.swing.GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -268,9 +272,9 @@ public class GameView extends javax.swing.JFrame {
                 playerList.setVisible(true);
                 playerList.setLineWrap(true);
                 leaveButton.setVisible(true);
-                voteButton.setVisible(true);
+                getVoteButton().setVisible(true);
                 leaveButton.setEnabled(false);
-                voteButton.setEnabled(false);
+                getVoteButton().setEnabled(false);
                 this.revalidate();
         
     }//GEN-LAST:event_readyButtonActionPerformed
@@ -297,23 +301,41 @@ public class GameView extends javax.swing.JFrame {
         }
         playerList.setText(players);
        
-        activePlayers.setModel(new DefaultComboBoxModel(active.toArray()));
-        activePlayers.setVisible(true);
+
+        if (role.equals("werewolf") && !isDay){
+            active.remove(friend);
+            active.remove(username);
+        }
         
+        getActivePlayers().setModel(new DefaultComboBoxModel(active.toArray()));
+        if (role.equals("civilian") && !isDay){
+            getActivePlayers().setVisible(false);
+        }
+        else {
+            getActivePlayers().setVisible(true);
+        }
+            
         //this.revalidate();
     }
     
-    public synchronized void startGame(String username, String role){
+    public synchronized void startGame(String username, String role, String friend){
+        this.username = username;
+        this.role = role;
+        if (role.equals("werewolf")){
+            this.friend = friend;
+        }
+        this.isDay = true;
+        this.isAlive = true;
         roleLabel.setText(role);
         usernameLabel.setText(username);
         statusLabel.setVisible(true);
         leaveButton.setEnabled(true);
-        voteButton.setEnabled(true);
+        getVoteButton().setEnabled(true);
         roundLabel.setVisible(true);
         phaseLabel.setVisible(true);
         roleLabel.setVisible(true);
         usernameLabel.setVisible(true);
-        //this.revalidate();
+        this.revalidate();
     }
     
     public synchronized void updateRound(int round){
@@ -322,13 +344,36 @@ public class GameView extends javax.swing.JFrame {
     
     public synchronized void updatePhase(String phase){
         roundLabel.setText(phase + " Time");
+        if (phase.equals("day")){
+            isDay = true;
+
+            voteButtonState(true);
+            
+        }
+        else{
+            isDay = false;
+            if (role.equals("civilian")){
+                voteButtonState(false);
+            }
+        }
+            
+    }
+    
+    
+    public synchronized void voteButtonState(boolean state){
+        if (isAlive && voteNow)
+            getVoteButton().setEnabled(state);
+        else
+            getVoteButton().setEnabled(false);
     }
 
     public synchronized void updateStatus(int status){
         if (status == 1)
             statusLabel.setText("Status: Alive");
-        else
+        else {
             statusLabel.setText("Status: Dead");
+            isAlive = false;
+        }
         
     }
     
@@ -375,5 +420,33 @@ public class GameView extends javax.swing.JFrame {
      */
     public void setIn(BufferedReader in) {
         this.in = in;
+    }
+
+    /**
+     * @return the voteNow
+     */
+    public boolean isVoteNow() {
+        return voteNow;
+    }
+
+    /**
+     * @param voteNow the voteNow to set
+     */
+    public void setVoteNow(boolean voteNow) {
+        this.voteNow = voteNow;
+    }
+
+    /**
+     * @return the voteButton
+     */
+    public javax.swing.JButton getVoteButton() {
+        return voteButton;
+    }
+
+    /**
+     * @return the activePlayers
+     */
+    public javax.swing.JComboBox<String> getActivePlayers() {
+        return activePlayers;
     }
 }
