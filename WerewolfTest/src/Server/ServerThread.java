@@ -23,7 +23,7 @@ import org.json.JSONObject;
  * @author Candy
  */
 public class ServerThread implements Runnable {
-    private static AtomicInteger statusPlayer;
+    private static AtomicInteger statusPlayer = new AtomicInteger(0);
     private Socket clientSocket = null;
     private int playerId;
     private ListPlayer listPlayer;
@@ -229,9 +229,9 @@ public class ServerThread implements Runnable {
                         }
                         else {
                             if (jsonIn.getString("status").equals("ok")&&(jsonIn.getString("description").equals("ready to vote"))) {
-                                listPlayer.setStatusPlayer(listPlayer.getStatusPlayer()+1);
-                                System.out.println("jumlah status player : " + listPlayer.getStatusPlayer());
-                                while (listPlayer.getStatusPlayer() < listPlayer.getPlayersAlive()) {
+                                setStatusPlayer(getStatusPlayer()+1);
+                                System.out.println("jumlah status player : " + getStatusPlayer());
+                                while (getStatusPlayer() < listPlayer.getPlayersAlive()) {
                                     try {
                                         Thread.sleep(1000);
                                     } catch (InterruptedException ex) {
@@ -326,7 +326,7 @@ public class ServerThread implements Runnable {
     
     private JSONObject changePhase(String time, int days){
         try {
-            listPlayer.setStatusPlayer(0);
+            setStatusPlayer(0);
             JSONObject msg = new JSONObject();
             msg.put("method", "change_phase");
             msg.put("time", time);
@@ -365,6 +365,20 @@ public class ServerThread implements Runnable {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-    }   
+    }
+    
+    /**
+     * @return the statusPlayer
+     */
+    public int getStatusPlayer() {
+        return statusPlayer.get();
+    }
+
+    /**
+     * @param aStatusPlayer the statusPlayer to set
+     */
+    public void setStatusPlayer(int _statusPlayer) {
+        statusPlayer.set(_statusPlayer);
+    }
     
 }

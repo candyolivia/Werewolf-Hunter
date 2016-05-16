@@ -128,6 +128,11 @@ public class GameView extends javax.swing.JFrame {
         voteButton.setForeground(new java.awt.Color(0, 153, 153));
         voteButton.setText("Vote!");
         voteButton.setPreferredSize(new java.awt.Dimension(70, 70));
+        voteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                voteButtonActionPerformed(evt);
+            }
+        });
         readyPane.add(voteButton);
         voteButton.setBounds(456, 371, 70, 70);
 
@@ -149,25 +154,25 @@ public class GameView extends javax.swing.JFrame {
         playersLabel.setForeground(new java.awt.Color(0, 153, 153));
         playersLabel.setText("Players");
         readyPane.add(playersLabel);
-        playersLabel.setBounds(478, 26, 99, 43);
+        playersLabel.setBounds(478, 26, 118, 43);
 
         roundLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
         roundLabel.setForeground(new java.awt.Color(0, 153, 153));
         roundLabel.setText("Round 1");
         readyPane.add(roundLabel);
-        roundLabel.setBounds(199, 21, 96, 37);
+        roundLabel.setBounds(199, 21, 134, 47);
 
         roleLabel.setFont(new java.awt.Font("Frank", 0, 28)); // NOI18N
         roleLabel.setForeground(new java.awt.Color(0, 153, 153));
         roleLabel.setText("You are a role");
         readyPane.add(roleLabel);
-        roleLabel.setBounds(10, 412, 144, 29);
+        roleLabel.setBounds(10, 412, 172, 37);
 
         usernameLabel.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
         usernameLabel.setForeground(new java.awt.Color(0, 153, 153));
         usernameLabel.setText("Username");
         readyPane.add(usernameLabel);
-        usernameLabel.setBounds(10, 381, 83, 25);
+        usernameLabel.setBounds(10, 381, 110, 32);
 
         phaseLabel.setFont(new java.awt.Font("Frank", 0, 52)); // NOI18N
         phaseLabel.setForeground(new java.awt.Color(0, 102, 153));
@@ -185,7 +190,7 @@ public class GameView extends javax.swing.JFrame {
         statusLabel.setForeground(new java.awt.Color(255, 102, 102));
         statusLabel.setText("Status: alive");
         readyPane.add(statusLabel);
-        statusLabel.setBounds(294, 389, 128, 29);
+        statusLabel.setBounds(294, 389, 151, 37);
 
         gameOverLabel.setFont(new java.awt.Font("Frank", 1, 80)); // NOI18N
         gameOverLabel.setForeground(new java.awt.Color(204, 0, 0));
@@ -261,6 +266,10 @@ public class GameView extends javax.swing.JFrame {
                 }
         System.exit(0);
     }//GEN-LAST:event_leaveButtonActionPerformed
+
+    private void voteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_voteButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_voteButtonActionPerformed
 
     public synchronized void updatePlayerList(ArrayList usernames, ArrayList active){
         String players ="";

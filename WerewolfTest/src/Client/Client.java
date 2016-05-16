@@ -186,9 +186,6 @@ public class Client {
                                         }
                                     }
                                 });
-                                
-                                
-                                
                                 game.setVoteNow(false);
                                 break;
                             case "kpu_selected":

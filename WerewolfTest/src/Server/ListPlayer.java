@@ -21,7 +21,6 @@ import org.json.JSONObject;
  * @author Candy
  */
 public class ListPlayer {
-    private static AtomicInteger statusPlayer = new AtomicInteger(0);
     private static ArrayList<Player> players = new ArrayList<Player>();
     private ArrayList werewolfId = randomRole();
     public static boolean isDay = true;
@@ -197,18 +196,6 @@ public class ListPlayer {
             if(getPlayer(i).getAlive() == 1) ++count;
         }
         return count;
-    }
-
-    public synchronized int getStatusPlayer() {
-        return statusPlayer.get();
-    }
-
-    public void setStatusPlayer(int statusPlayer) {
-        this.statusPlayer.set(statusPlayer);
-    }
-    
-    public void incStatusPlayer() {
-        this.statusPlayer.incrementAndGet();
     }
     
     public boolean isGameOver(){
