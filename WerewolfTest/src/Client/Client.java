@@ -79,7 +79,7 @@ public class Client {
 //                                "Enter clientAddress",
 //                                JOptionPane.QUESTION_MESSAGE);
 //            } while (clientAddress == null);
-                clientAddress = "127.0.0.1";
+                clientAddress = InetAddress.getLocalHost().getHostAddress();
             
             do {
                 clientPort = Integer.parseInt((String)JOptionPane.showInputDialog(
@@ -256,22 +256,22 @@ public class Client {
     }
     
     public void initializeClient(){
-//        String inputHostname = (String)JOptionPane.showInputDialog(
-//                                new JFrame(),
-//                                "Enter Host Name:\n",
-//                                "Enter Host Name",
-//                                JOptionPane.QUESTION_MESSAGE);
-//        
-//        String inputPortNumber = (String)JOptionPane.showInputDialog(
-//                                new JFrame(),
-//                                "Enter Port Number:\n",
-//                                "Enter Port Number",
-//                                JOptionPane.QUESTION_MESSAGE);
+        String hostname = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Host Name:\n",
+                                "Enter Host Name",
+                                JOptionPane.QUESTION_MESSAGE);
         
-//        hostName = inputHostname;
-//        portNumber = Integer.parseInt(inputPortNumber);
-       hostName = "127.0.0.1";
-       portNumber = 8005;
+        String inputPortNumber = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter Port Host Number:\n",
+                                "Enter Port Host Number",
+                                JOptionPane.QUESTION_MESSAGE);
+        
+        hostName = hostname;
+        portNumber = Integer.parseInt(inputPortNumber);
+//       hostName = "127.0.0.1";
+//       portNumber = 8005;
         valid = false;
     }
     
