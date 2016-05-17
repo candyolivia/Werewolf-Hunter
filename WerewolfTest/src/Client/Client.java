@@ -73,14 +73,7 @@ public class Client {
                                 JOptionPane.QUESTION_MESSAGE);
             
             
-            do {
-                clientAddress = (String)JOptionPane.showInputDialog(
-                                new JFrame(),
-                                "Enter clientAddress:\n",
-                                "Enter clientAddress",
-                                JOptionPane.QUESTION_MESSAGE);
-            } while (clientAddress == null);
-//                clientAddress = InetAddress.getLocalHost().getHostAddress();
+                clientAddress = InetAddress.getLocalHost().getHostAddress();
             
             do {
                 clientPort = Integer.parseInt((String)JOptionPane.showInputDialog(
