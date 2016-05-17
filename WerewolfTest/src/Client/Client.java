@@ -47,6 +47,7 @@ public class Client {
     private boolean isStart = false;
     private Socket werewolfSocket;
     private int idKpu;
+    private boolean isVote = false;
     private String inputUsername ="";
     
     
@@ -167,9 +168,17 @@ public class Client {
                                 //System.out.println("masuk sini3");
                                 break;
                             case "vote_now":
-                                game.setVoteNow(true);
-                                game.voteButtonState(true);
+                                if(serverJSON.getString("phase").equals("day")){
+                                    game.setVoteNow(true);
+                                    game.voteButtonState(true);
+                                } else {
+                                    if(listPlayers.getPlayer(playerID).getRole().equals("werewolf")){
+                                        game.setVoteNow(true);
+                                        game.voteButtonState(true);
+                                    }
+                                }
                                 //cek button vote
+//                                ActionListener listener = ;
                                 game.getVoteButton().addActionListener(new ActionListener() {
                                     public void actionPerformed(ActionEvent e){
                                         try {
@@ -181,6 +190,7 @@ public class Client {
                                                 voteWerewolf(game.getActivePlayers().getSelectedItem().toString());
                                             }
                                             game.getVoteButton().setEnabled(false);
+                                            game.getVoteButton().removeActionListener(this);
                                         } catch (JSONException ex) {
                                             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                                         } catch (IOException ex) {
@@ -188,6 +198,7 @@ public class Client {
                                         }
                                     }
                                 });
+//                                game.getVoteButton().removeActionListener(listener);
                                 game.setVoteNow(false);
                                 break;
                             case "kpu_selected":
@@ -195,15 +206,6 @@ public class Client {
                                 sendStatusOK(werewolfSocket);
                                 break;
                             case "change_phase":
-                                if(serverJSON.getString("time").equals("day")){
-                                    isDay = true;
-                                    acceptor.setIsConsensusTime(true);
-                                   
-                                } else {
-                                    isDay = false;
-                                    
-                                }
-                                
                                 updateListPlayers(werewolfSocket);
                                 game.updatePhase(serverJSON.getString("time"));
                                 game.updateRound(serverJSON.getInt("days"));
@@ -214,8 +216,13 @@ public class Client {
                                 game.updateStatus(getAlive(response));
                                 //update list player
                                 game.updatePlayerList(listPlayers.getUsernamePlayers(), getActivePlayers(response));
-                                
-                                sendStatusOK(werewolfSocket);
+                                if(serverJSON.getString("time").equals("day")){
+                                    isDay = true;
+                                    acceptor.setIsConsensusTime(true);
+                                } else {
+                                    isDay = false;
+                                    sendStatusOK(werewolfSocket);
+                                }
                                 break;
                             case "game_over":
                                 game.showGameOver(serverJSON.getString("winner"));
