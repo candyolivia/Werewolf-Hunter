@@ -73,14 +73,14 @@ public class Client {
                                 JOptionPane.QUESTION_MESSAGE);
             
             
-//            do {
-//                clientAddress = (String)JOptionPane.showInputDialog(
-//                                new JFrame(),
-//                                "Enter clientAddress:\n",
-//                                "Enter clientAddress",
-//                                JOptionPane.QUESTION_MESSAGE);
-//            } while (clientAddress == null);
-                clientAddress = InetAddress.getLocalHost().getHostAddress();
+            do {
+                clientAddress = (String)JOptionPane.showInputDialog(
+                                new JFrame(),
+                                "Enter clientAddress:\n",
+                                "Enter clientAddress",
+                                JOptionPane.QUESTION_MESSAGE);
+            } while (clientAddress == null);
+//                clientAddress = InetAddress.getLocalHost().getHostAddress();
             
             do {
                 clientPort = Integer.parseInt((String)JOptionPane.showInputDialog(
@@ -268,7 +268,7 @@ public class Client {
     }
     
     public void initializeClient(){
-        /*String hostname = (String)JOptionPane.showInputDialog(
+        String hostname = (String)JOptionPane.showInputDialog(
                                 new JFrame(),
                                 "Enter Host Name:\n",
                                 "Enter Host Name",
@@ -281,9 +281,9 @@ public class Client {
                                 JOptionPane.QUESTION_MESSAGE);
         
         hostName = hostname;
-        portNumber = Integer.parseInt(inputPortNumber);*/
-        hostName = "127.0.0.1";
-        portNumber = 8005;
+        portNumber = Integer.parseInt(inputPortNumber);
+//        hostName = "127.0.0.1";
+//        portNumber = 8005;
         valid = false;
     }
     
