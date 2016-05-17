@@ -154,25 +154,25 @@ public class GameView extends javax.swing.JFrame {
         playersLabel.setForeground(new java.awt.Color(0, 153, 153));
         playersLabel.setText("Players");
         readyPane.add(playersLabel);
-        playersLabel.setBounds(478, 26, 118, 43);
+        playersLabel.setBounds(478, 26, 99, 43);
 
         roundLabel.setFont(new java.awt.Font("Frank", 0, 36)); // NOI18N
         roundLabel.setForeground(new java.awt.Color(0, 153, 153));
         roundLabel.setText("Round 1");
         readyPane.add(roundLabel);
-        roundLabel.setBounds(199, 21, 134, 47);
+        roundLabel.setBounds(199, 21, 96, 37);
 
         roleLabel.setFont(new java.awt.Font("Frank", 0, 28)); // NOI18N
         roleLabel.setForeground(new java.awt.Color(0, 153, 153));
         roleLabel.setText("You are a role");
         readyPane.add(roleLabel);
-        roleLabel.setBounds(10, 412, 172, 37);
+        roleLabel.setBounds(10, 412, 144, 29);
 
         usernameLabel.setFont(new java.awt.Font("Frank", 0, 24)); // NOI18N
         usernameLabel.setForeground(new java.awt.Color(0, 153, 153));
         usernameLabel.setText("Username");
         readyPane.add(usernameLabel);
-        usernameLabel.setBounds(10, 381, 110, 32);
+        usernameLabel.setBounds(10, 381, 83, 25);
 
         phaseLabel.setFont(new java.awt.Font("Frank", 0, 52)); // NOI18N
         phaseLabel.setForeground(new java.awt.Color(0, 102, 153));
@@ -190,7 +190,7 @@ public class GameView extends javax.swing.JFrame {
         statusLabel.setForeground(new java.awt.Color(255, 102, 102));
         statusLabel.setText("Status: alive");
         readyPane.add(statusLabel);
-        statusLabel.setBounds(294, 389, 151, 37);
+        statusLabel.setBounds(294, 389, 128, 29);
 
         gameOverLabel.setFont(new java.awt.Font("Frank", 1, 80)); // NOI18N
         gameOverLabel.setForeground(new java.awt.Color(204, 0, 0));
@@ -286,13 +286,12 @@ public class GameView extends javax.swing.JFrame {
         
         getActivePlayers().setModel(new DefaultComboBoxModel(active.toArray()));
         if ((role.equals("civilian") && !isDay) || !isAlive){
-            getActivePlayers().setVisible(false);
+            activePlayers.setVisible(false);
         }
         else {
-            getActivePlayers().setVisible(true);
+            activePlayers.setVisible(true);
         }
             
-        //this.revalidate();
     }
     
     public synchronized void startGame(String username, String role, String friend){
@@ -307,23 +306,26 @@ public class GameView extends javax.swing.JFrame {
         usernameLabel.setText(username);
         statusLabel.setVisible(true);
         leaveButton.setEnabled(true);
-        getVoteButton().setEnabled(true);
+        voteButton.setEnabled(true);
         roundLabel.setVisible(true);
         phaseLabel.setVisible(true);
         roleLabel.setVisible(true);
         usernameLabel.setVisible(true);
-        this.revalidate();
+        
     }
     
     public synchronized void updateRound(int round){
+        System.out.print("updateRound "+round);
         roundLabel.setText("Round " + round);
+       
+        
     }
     
     public synchronized void updatePhase(String phase){
-        roundLabel.setText(phase + " Time");
+        System.out.println("updatePhase: " + phase);
+        phaseLabel.setText(phase + " Time");
         if (phase.equals("day")){
             isDay = true;
-
             voteButtonState(true);
             
         }
@@ -333,6 +335,7 @@ public class GameView extends javax.swing.JFrame {
                 voteButtonState(false);
             }
         }
+        this.revalidate();
             
     }
     
@@ -342,16 +345,18 @@ public class GameView extends javax.swing.JFrame {
             getVoteButton().setEnabled(state);
         else
             getVoteButton().setEnabled(false);
+        
     }
 
     public synchronized void updateStatus(int status){
+        System.out.println("updateStatus: " + status);
         if (status == 1)
             statusLabel.setText("Status: Alive");
         else {
             statusLabel.setText("Status: Dead");
             isAlive = false;
         }
-        
+        this.revalidate();
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -436,5 +441,6 @@ public class GameView extends javax.swing.JFrame {
         roundLabel.setVisible(false);
         phaseLabel.setVisible(false);
         voteButton.setVisible(false);
+        activePlayers.setVisible(false);
     }
 }

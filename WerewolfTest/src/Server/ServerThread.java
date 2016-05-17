@@ -370,14 +370,14 @@ public class ServerThread implements Runnable {
     /**
      * @return the statusPlayer
      */
-    public int getStatusPlayer() {
+    public synchronized int getStatusPlayer() {
         return statusPlayer.get();
     }
 
     /**
      * @param aStatusPlayer the statusPlayer to set
      */
-    public void setStatusPlayer(int _statusPlayer) {
+    public synchronized void setStatusPlayer(int _statusPlayer) {
         statusPlayer.set(_statusPlayer);
     }
     

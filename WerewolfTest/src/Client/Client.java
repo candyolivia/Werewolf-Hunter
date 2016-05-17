@@ -174,10 +174,12 @@ public class Client {
                                     public void actionPerformed(ActionEvent e){
                                         try {
                                             System.out.println("Vote button clicked");
-                                            if(serverJSON.getString("phase").equals("day"))
+                                            if(serverJSON.getString("phase").equals("day")){
                                                 voteCivilian(game.getActivePlayers().getSelectedItem().toString());
-                                            else
+                                            }
+                                            else{
                                                 voteWerewolf(game.getActivePlayers().getSelectedItem().toString());
+                                            }
                                             game.getVoteButton().setEnabled(false);
                                         } catch (JSONException ex) {
                                             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -195,22 +197,25 @@ public class Client {
                             case "change_phase":
                                 if(serverJSON.getString("time").equals("day")){
                                     isDay = true;
-                                    updateListPlayers(werewolfSocket);
-                                    game.updatePhase(serverJSON.getString("time"));
-                                    game.updateRound(serverJSON.getInt("days"));
-                                    out.println(requestClients());
-                                    response = getResponse(in);
-
-                                    //update status
-                                    game.updateStatus(getAlive(response));
-                                    //update list player
-                                    game.updatePlayerList(listPlayers.getUsernamePlayers(), getActivePlayers(response));
                                     acceptor.setIsConsensusTime(true);
+                                   
                                 } else {
                                     isDay = false;
-                                    updateListPlayers(werewolfSocket);
-                                    sendStatusOK(werewolfSocket);
+                                    
                                 }
+                                
+                                updateListPlayers(werewolfSocket);
+                                game.updatePhase(serverJSON.getString("time"));
+                                game.updateRound(serverJSON.getInt("days"));
+                                out.println(requestClients());
+                                                                
+                                response = getResponse(in);
+                                //update status
+                                game.updateStatus(getAlive(response));
+                                //update list player
+                                game.updatePlayerList(listPlayers.getUsernamePlayers(), getActivePlayers(response));
+                                
+                                sendStatusOK(werewolfSocket);
                                 break;
                             case "game_over":
                                 game.showGameOver(serverJSON.getString("winner"));
@@ -256,7 +261,7 @@ public class Client {
     }
     
     public void initializeClient(){
-        String hostname = (String)JOptionPane.showInputDialog(
+        /*String hostname = (String)JOptionPane.showInputDialog(
                                 new JFrame(),
                                 "Enter Host Name:\n",
                                 "Enter Host Name",
@@ -269,9 +274,9 @@ public class Client {
                                 JOptionPane.QUESTION_MESSAGE);
         
         hostName = hostname;
-        portNumber = Integer.parseInt(inputPortNumber);
-//       hostName = "127.0.0.1";
-//       portNumber = 8005;
+        portNumber = Integer.parseInt(inputPortNumber);*/
+        hostName = "127.0.0.1";
+        portNumber = 8005;
         valid = false;
     }
     
